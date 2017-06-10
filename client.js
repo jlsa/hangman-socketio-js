@@ -105,27 +105,28 @@ $(document).ready(() => {
 
   socket.on('update gamestate', (data) => {
     console.log('update gamestate', data);
-    let letters = data.letters;
-    let lettersCorrect = data.lettersCorrect;
-    let notUsedLetters = data.notUsedLetters;
-    let playedLetters = data.playedLetters;
-    let word = data.word;
-    console.log('not used letters: ', notUsedLetters);
-
-    renderButtons(notUsedLetters);
-    $('.alphabet-button').click((e) => {
-      console.log('clicked on a letter');
-      if (myTurn) {
-        let $target = $(e.target);
-        console.log($target.val());
-        $target.prop('disabled', true);
-        socket.emit('check letter', {
-          player: session,
-          letter: $target.val()
-        });
-        myTurn = false;
-      }
-    });
+    updateGameState(data);
+    // let letters = data.letters;
+    // let lettersCorrect = data.lettersCorrect;
+    // let notUsedLetters = data.notUsedLetters;
+    // let playedLetters = data.playedLetters;
+    // let word = data.word;
+    // console.log('not used letters: ', notUsedLetters);
+    //
+    // renderButtons(notUsedLetters);
+    // $('.alphabet-button').click((e) => {
+    //   console.log('clicked on a letter');
+    //   if (myTurn) {
+    //     let $target = $(e.target);
+    //     console.log($target.val());
+    //     $target.prop('disabled', true);
+    //     socket.emit('check letter', {
+    //       player: session,
+    //       letter: $target.val()
+    //     });
+    //     myTurn = false;
+    //   }
+    // });
   });
 });
 
@@ -143,26 +144,30 @@ const gameStart = (data) => {
   $userList.append(`<li>Player One: ${data.gameState.playerOne.username}</li>`);
   $userList.append(`<li>Player Two: ${data.gameState.playerTwo.username}</li>`);
 
-
-  renderButtons(data.gameState.notUsedLetters);
-
   playerOne = data.gameState.playerOne;
   playerTwo = data.gameState.playerTwo;
 
-  console.log('-----')
-  console.log(session);
-  console.log('-----');
   if (playerOne.username === session.username) {
     myTurn = true;
   }
 
+  updateGameState(data.gameState);
+};
+
+const updateGameState = (gameState) => {
+  let letters = gameState.letters;
+  let lettersCorrect = gameState.lettersCorrect;
+  let notUsedLetters = gameState.notUsedLetters;
+  let playedLetters = gameState.playedLetters;
+  let word = gameState.word;
+  let outputString = gameState.outputString;
+  renderButtons(gameState.notUsedLetters);
+
+  $('#word').text(outputString);
 
   $('.alphabet-button').click((e) => {
-    console.log('clicked on a letter');
     if (myTurn) {
       let $target = $(e.target);
-      console.log($target.val());
-      $target.prop('disabled', true);
       socket.emit('check letter', {
         player: session,
         letter: $target.val()
@@ -170,21 +175,6 @@ const gameStart = (data) => {
       myTurn = false;
     }
   });
-
-
-
-  // socket.on('update gamestate', (data) => {
-  //   console.log(data);
-  //   let letters = data.letters;
-  //   let lettersCorrect = data.lettersCorrect;
-  //   let notUsedLetters = data.notUsedLetters;
-  //   let playedLetters = data.playedLetters;
-  //   let word = data.word;
-  // });
-  //
-  // socket.on('turn', (data) => {
-  //   myTurn = data.myTurn;
-  // });
 };
 
 const renderButtons = (alphabet) => {
@@ -196,8 +186,8 @@ const renderButtons = (alphabet) => {
 }
 
 const challengeUser = (id) => {
-  console.log(session);
-  console.log(`you: ${session.userId} are challenging user ${id}`);
+  // console.log(session);
+  // console.log(`you: ${session.userId} are challenging user ${id}`);
   socket.emit('challenge user', {
     challenger: session.userId,
     challenged: id

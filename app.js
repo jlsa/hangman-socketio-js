@@ -95,8 +95,8 @@ io.sockets.on('connection', (socket) => {
 
   socket.on('check letter', (data) => {
     let game = getGame(socket.id);
-    console.log('check letter', data);
-    let correctLetter = game.addLetter(data.letter);
+    // console.log('check letter', data);
+    game.addLetter(data.letter);
     let gameState = game.getState();
     // console.log('gamestate', gameState);
     emitToPlayers(game.getPlayers(), 'update gamestate', gameState);
@@ -120,7 +120,7 @@ io.sockets.on('connection', (socket) => {
 
   // handles login
   socket.on('auth', (data) => {
-    console.log(data);
+    // console.log(data);
     let user;
     let sessionObj;
     let authSuccess = false;
@@ -226,13 +226,13 @@ const logoutPlayer = (id) => {
 }
 
 const emitToPlayer = (socketId, event, data) => {
-  console.log(`emitting '${event}' to ${socketId}`, data);
+  // console.log(`emitting '${event}' to ${socketId}`, data);
   io.to(socketId).emit(event, data);
 };
 
 const emitToPlayers = (players, event, data) => {
   for(let i = 0; i < players.length; i++) {
-    io.to(players[i].socketId).emit(event, data);
+    emitToPlayer(players[i].socketId, event, data);
   }
 };
 

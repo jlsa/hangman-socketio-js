@@ -1,5 +1,6 @@
 class Game {
   constructor() {
+    this.letters = [];
     this.players = [];
     this.playedLetters = [];
     this.correctLetters = [];
@@ -12,6 +13,7 @@ class Game {
       'U', 'V', 'W', 'X', 'Y',
       'Z'
     ];
+    this.outputString = this.createOutputString();
   }
 
   addLetter(letter) {
@@ -20,24 +22,26 @@ class Game {
     let indexOfLetter = this.notUsedLetters.indexOf(letter);
     this.notUsedLetters.splice(indexOfLetter, 1);
     // should give back the indexes of the correct letter in the word
-    for (let i = 0; i < this.letters.length; i++) {
-      if (letter === this.letters[i]) {
-        this.correctLetters.push(letter);
-        return true;
-      } else {
-        this.incorrectLetters.push(letter);
-        return false;
-      }
+    if (this.validateLetter(letter, this.letters)) {
+      console.log('correct letter ' + letter);
+      this.correctLetters.push(letter);
+      console.log(this.correctLetters);
+    } else {
+      console.log('incorrect letter ' + letter);
+      this.incorrectLetters.push(letter);
+      console.log(this.incorrectLetters);
     }
+    this.outputString = this.createOutputString();
   }
 
   addWord(word) {
     this.word = word;
     this.letters = word.split("");
+    this.outputString = this.createOutputString();
   }
 
   addPlayer(player) {
-    console.log('adding player', player);
+    // console.log('adding player', player);
     this.players.push(player);
   }
 
@@ -90,8 +94,21 @@ class Game {
     }
   }
 
+  createOutputString() {
+    let temp = [];
+    for (let i = 0; i < this.letters.length; i++) {
+      let letter = this.letters[i];
+      if (this.validateLetter(letter, this.correctLetters)) {
+        temp[i] = letter;
+      } else {
+        temp[i] = '_';
+      }
+    }
+    return temp.join(' ');
+  }
+
   getState() {
-    return {
+    let state = {
       playerOne: this.getPlayerOne(),
       playerTwo: this.getPlayerTwo(),
       word: this.word,
@@ -100,7 +117,19 @@ class Game {
       lettersIncorrect: this.incorrectLetters,
       playedLetters: this.playedLetters,
       notUsedLetters: this.notUsedLetters,
+      outputString: this.outputString
     };
+    return state;
+  }
+
+  validateLetter(letter, letters = this.letters) {
+    console.log(letter, letters);
+    for (let i = 0; i < letters.length; i++) {
+      if (letters[i] === letter) {
+        return true;
+      }
+    }
+    return false;
   }
 }
 
