@@ -17,10 +17,10 @@ app.get('/', (req, res) => {
 });
 
 const words = [
-  'aan', 'dans', 'school', 'fiets', 'laptop',
-  'man', 'plant', 'muis', 'rat', 'televisie',
-  'vrouw', 'kast', 'arend', 'koe', 'bank',
-  'ventilator', '', 'vogel', 'kip', 'aap'
+  'AAN', 'DANS', 'SCHOOL', 'FIETS', 'LAPTOP',
+  'MAN', 'PLANT', 'MUIS', 'RAT', 'TELEVISIE',
+  'VROUW', 'KAST', 'AREND', 'KOE', 'BANK',
+  'VENTILATOR', 'HOND', 'VOGEL', 'KIP', 'AAP'
 ];
 const games = [];
 const loggedInUsers = [];
@@ -116,18 +116,6 @@ io.sockets.on('connection', (socket) => {
     emitToPlayer(opponent.socketId, 'logging', {
       message: 'it is turn'
     });
-    // emitToPlayer(data.player, 'turn', {
-    //   myTurn: false
-    // });
-    // emitToPlayer(data.player, 'logging', {
-    //   message: 'It is your opponents turn'
-    // });
-    // emitToPlayer(game.getOpponent(data.player), 'turn', {
-    //   myTurn: true
-    // });
-    // emitToPlayer(game.getOpponent(data.player), 'logging', {
-    //   message: 'It is your turn'
-    // });
   });
 
   // handles login

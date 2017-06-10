@@ -21,10 +21,9 @@ const init = () => {
     event.preventDefault();
   });
 };
+
 $(document).ready(() => {
   init();
-
-
   $('#login-form').submit((event) => {
     event.preventDefault();
     let $inputs = $('#login-form :input');
@@ -92,7 +91,6 @@ $(document).ready(() => {
     } else {
       $('#turnIndicator').text('Your opponent\'s turn.');
     }
-    // usedLetters
   });
 
   socket.on('turn', (data) => {
@@ -106,12 +104,28 @@ $(document).ready(() => {
   });
 
   socket.on('update gamestate', (data) => {
-    console.log(data);
+    console.log('update gamestate', data);
     let letters = data.letters;
     let lettersCorrect = data.lettersCorrect;
     let notUsedLetters = data.notUsedLetters;
     let playedLetters = data.playedLetters;
     let word = data.word;
+    console.log('not used letters: ', notUsedLetters);
+
+    renderButtons(notUsedLetters);
+    $('.alphabet-button').click((e) => {
+      console.log('clicked on a letter');
+      if (myTurn) {
+        let $target = $(e.target);
+        console.log($target.val());
+        $target.prop('disabled', true);
+        socket.emit('check letter', {
+          player: session,
+          letter: $target.val()
+        });
+        myTurn = false;
+      }
+    });
   });
 });
 
@@ -130,12 +144,7 @@ const gameStart = (data) => {
   $userList.append(`<li>Player Two: ${data.gameState.playerTwo.username}</li>`);
 
 
-  $alphabetButtons = $('#alphabet-buttons');
-  $alphabetButtons.html('');
-  let alphabet = data.gameState.notUsedLetters;
-  for (let i = 0; i < 26; i++) {
-    $userList.append(`<button class="btn btn-primary btn-xs alphabet-button" value="${alphabet[i]}">${alphabet[i]}</button>`);
-  }
+  renderButtons(data.gameState.notUsedLetters);
 
   playerOne = data.gameState.playerOne;
   playerTwo = data.gameState.playerTwo;
@@ -147,8 +156,9 @@ const gameStart = (data) => {
     myTurn = true;
   }
 
-  // should this be IN gameStart method?
+
   $('.alphabet-button').click((e) => {
+    console.log('clicked on a letter');
     if (myTurn) {
       let $target = $(e.target);
       console.log($target.val());
@@ -160,6 +170,8 @@ const gameStart = (data) => {
       myTurn = false;
     }
   });
+
+
 
   // socket.on('update gamestate', (data) => {
   //   console.log(data);
@@ -174,6 +186,14 @@ const gameStart = (data) => {
   //   myTurn = data.myTurn;
   // });
 };
+
+const renderButtons = (alphabet) => {
+  $alphabetButtons = $('#alphabet-buttons');
+  $alphabetButtons.html('');
+  for (let i = 0; i < alphabet.length; i++) {
+    $alphabetButtons.append(`<button class="btn btn-primary btn-xs alphabet-button" value="${alphabet[i]}">${alphabet[i]}</button>`);
+  }
+}
 
 const challengeUser = (id) => {
   console.log(session);

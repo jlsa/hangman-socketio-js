@@ -15,13 +15,19 @@ class Game {
   }
 
   addLetter(letter) {
+    letter = letter.toUpperCase();
     this.playedLetters.push(letter);
-    if (letter.includes(this.letters)) {
-      this.correctLetters.push(letter);
-      return true;
-    } else {
-      this.incorrectLetters.push(letter);
-      return false;
+    let indexOfLetter = this.notUsedLetters.indexOf(letter);
+    this.notUsedLetters.splice(indexOfLetter, 1);
+    // should give back the indexes of the correct letter in the word
+    for (let i = 0; i < this.letters.length; i++) {
+      if (letter === this.letters[i]) {
+        this.correctLetters.push(letter);
+        return true;
+      } else {
+        this.incorrectLetters.push(letter);
+        return false;
+      }
     }
   }
 
