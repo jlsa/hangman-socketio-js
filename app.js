@@ -23,7 +23,6 @@ const words = [
   'ventilator', '', 'vogel', 'kip', 'aap'
 ];
 const games = [];
-let game;
 const loggedInUsers = [];
 const users = [
   {
@@ -71,7 +70,6 @@ const users = [
   }
 ];
 
-
 io.sockets.on('connection', (socket) => {
   console.log('a socket connected');
   io.sockets.emit('logging', {
@@ -79,19 +77,34 @@ io.sockets.on('connection', (socket) => {
   });
 
   socket.on('challenge user', (data) => {
-    console.log(data);
+    // console.log(data);
     let challenger = getUserById(data.challenger);
     let challenged = getUserById(data.challenged);
     // lets create a game for the two players if they are NOT currently IN a game
-    game = new Game();
+    let game = new Game();
+    game.addWord(getRandomWord());
     game.addPlayer(challenger);
     game.addPlayer(challenged);
-    let players = game.getPlayers();
+    game.start();
     games.push(game);
-    emitToPlayers(players, 'game start', {
-      playerOne: players[0],
-      playerTwo: players[1]
+
+    emitToPlayers(game.getPlayers(), 'game start', {
+      gameState: game.getState()
     });
+  });
+
+  socket.on('check letter', (data) => {
+    let game = getGame(socket.id);
+    console.log('check letter', data);
+    let correctLetter = game.addLetter(data.letter);
+    emitToPlayers(game.getPlayers(), 'update gamestate', game.getState());
+    emitToPlayer(data.player, 'turn', {
+      myTurn: false
+    });
+    emitToPlayer(game.getOtherPlayer(data.player), 'turn', {
+      myTurn: true
+    });
+
   });
 
   // handles login
@@ -109,7 +122,8 @@ io.sockets.on('connection', (socket) => {
           username: user.username,
           userId: user.userId,
           ranking: user.ranking,
-          socketId: socket.id
+          socketId: socket.id,
+          inGame: user.inGame
         };
         loggedInUsers.push(sessionObj);
         authSuccess = true;
@@ -166,14 +180,6 @@ io.sockets.on('connection', (socket) => {
     console.log('a socket disconnected');
     sendUserList();
   });
-
-  // setTimeout(() => {
-  //   let table = room.getTable(1);
-  //   io.sockets.emit('test', {
-  //     players: table.players,
-  //     socketId: socket.id,
-  //   })
-  // }, 1000);
 });
 
 const sendUserList = () => {
@@ -198,11 +204,11 @@ const logoutPlayer = (id) => {
   for (let i = 0; i < loggedInUsers.length; i++) {
     user = loggedInUsers[i];
     if (user.socketId == id) {
-      console.log('--- logged in user ---');
-      console.log(user);
+      // console.log('--- logged in user ---');
+      // console.log(user);
       let index = loggedInUsers.indexOf(user);
       loggedInUsers.splice(index, 1);
-      console.log('-----');
+      // console.log('-----');
       break;
     }
   }
@@ -216,4 +222,20 @@ const emitToPlayers = (players, event, data) => {
   for(let i = 0; i < players.length; i++) {
     io.to(players[i].socketId).emit(event, data);
   }
+};
+
+const getRandomWord = () => {
+  return words[0];
+};
+
+const getGame = (socketId) => {
+  let game = null;
+  for (let i = 0; i < games.length; i++) {
+    let temp = games[i];
+    if (temp.hasPlayer(socketId)) {
+      game = temp;
+      break;
+    }
+  }
+  return game;
 };

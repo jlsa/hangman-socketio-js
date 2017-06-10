@@ -2,18 +2,29 @@ const socket = io({transports: ['websocket'], upgrade: false});//.connect('http:
 let session;
 let loggedInUsers;
 
+let playerOne;
+let playerTwo;
+let myTurn = false;
+let gameState;
+
 socket.on('logging', (data) => {
   $('#updates').append('<li>' + data.message + '</li>');
   let log = document.getElementById('footer');
   log.scrollTop = log.scrollHeight;
 });
 
-$(document).ready(() => {
+const init = () => {
   $('#loggedIn').hide();
   $('#content').hide();
+  $('#game').hide();
   $('form').submit((event) => {
     event.preventDefault();
   });
+};
+$(document).ready(() => {
+  init();
+
+
   $('#login-form').submit((event) => {
     event.preventDefault();
     let $inputs = $('#login-form :input');
@@ -27,7 +38,7 @@ $(document).ready(() => {
       username: values.username,
       password: values.password
     });
-    console.log(values);
+    // console.log(values);
   });
 
   socket.on('user list update', (data) => {
@@ -39,26 +50,25 @@ $(document).ready(() => {
       let user = data.users[i];
       if (session.userId !== user.userId) {
         $userList.append(`<li>${user.username} - Ranking(${user.ranking})
-          <button class="btn btn-warning" onclick="challengeUser(${user.userId})">Challenge</button></li>`);
+          <button class="btn btn-warning btn-xs challengeUserBtn" onclick="challengeUser(${user.userId})">Challenge</button></li>`);
       } else {
         $userList.append(`<li>${user.username} - Ranking(${user.ranking})</li>`);
       }
-
     }
   });
 
   socket.on('auth success', (data) => {
-    console.log(data);
+    // console.log(data);
     $('#login-form').hide();
     $('#loggedIn').show();
     $('#users-list').show();
     $('#content').show();
     session = data.session;
-    console.log(session);
+    // console.log(session);
   });
 
   socket.on('auth failure', (data) => {
-    console.log(data);
+    // console.log(data);
   });
 
   $("#logout").on('click', (e) => {
@@ -75,10 +85,65 @@ $(document).ready(() => {
   });
 
   socket.on('game start', (data) => {
+    // console.log(data);
+    gameStart(data);
+  });
+
+  socket.on('turn', (data) => {
     console.log(data);
+    myTurn = data.myTurn;
   });
 });
 
+
+const gameStart = (data) => {
+  // $('#alphabet-buttons').
+  console.log('game started', data);
+  gameState = data.gameState;
+  $('.challengeUserBtn').hide();
+  $('#game').show();
+
+  $userList = $('#playersInGame');
+  $userList.html('');
+  $userList.append(`<li>Player One: ${data.gameState.playerOne.username}</li>`);
+  $userList.append(`<li>Player Two: ${data.gameState.playerTwo.username}</li>`);
+
+
+  $alphabetButtons = $('#alphabet-buttons');
+  $alphabetButtons.html('');
+  let alphabet = data.gameState.notUsedLetters;
+  for (let i = 0; i < 26; i++) {
+    $userList.append(`<button class="btn btn-primary btn-xs alphabet-button" value="${alphabet[i]}">${alphabet[i]}</button>`);
+  }
+
+  playerOne = data.gameState.playerOne;
+  playerTwo = data.gameState.playerTwo;
+
+  console.log('-----')
+  console.log(session);
+  console.log('-----');
+  if (playerOne.username === session.username) {
+    myTurn = true;
+  }
+
+  $('.alphabet-button').click((e) => {
+    if (myTurn) {
+      let $target = $(e.target);
+      console.log($target.val());
+      $target.prop('disabled', true);
+      socket.emit('check letter', {
+        player: session,
+        letter: $target.val()
+      });
+      myTurn = false;
+    }
+  });
+
+  socket.on('update gamestate', (data) => {
+    gameState = data.gameState
+    console.log(gameState);
+  });
+};
 
 const challengeUser = (id) => {
   console.log(session);
