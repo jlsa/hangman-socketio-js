@@ -21,15 +21,11 @@ class Game {
     this.playedLetters.push(letter);
     let indexOfLetter = this.notUsedLetters.indexOf(letter);
     this.notUsedLetters.splice(indexOfLetter, 1);
-    // should give back the indexes of the correct letter in the word
+
     if (this.validateLetter(letter, this.letters)) {
-      console.log('correct letter ' + letter);
       this.correctLetters.push(letter);
-      console.log(this.correctLetters);
     } else {
-      console.log('incorrect letter ' + letter);
       this.incorrectLetters.push(letter);
-      console.log(this.incorrectLetters);
     }
     this.outputString = this.createOutputString();
   }
@@ -41,7 +37,6 @@ class Game {
   }
 
   addPlayer(player) {
-    // console.log('adding player', player);
     this.players.push(player);
   }
 
@@ -123,7 +118,6 @@ class Game {
   }
 
   validateLetter(letter, letters = this.letters) {
-    console.log(letter, letters);
     for (let i = 0; i < letters.length; i++) {
       if (letters[i] === letter) {
         return true;

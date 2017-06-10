@@ -41,7 +41,7 @@ $(document).ready(() => {
   });
 
   socket.on('user list update', (data) => {
-    console.log(data);
+    // console.log(data);
     loggedInUsers = data.users;
     $userList = $('#users-list');
     $userList.html('');
@@ -63,7 +63,6 @@ $(document).ready(() => {
     $('#users-list').show();
     $('#content').show();
     session = data.session;
-    // console.log(session);
   });
 
   socket.on('auth failure', (data) => {
@@ -86,53 +85,20 @@ $(document).ready(() => {
   socket.on('game start', (data) => {
     // console.log(data);
     gameStart(data);
-    if (myTurn) {
-      $('#turnIndicator').text('Your turn!');
-    } else {
-      $('#turnIndicator').text('Your opponent\'s turn.');
-    }
+    handleTurnMessage();
   });
 
   socket.on('turn', (data) => {
-    console.log(data);
     myTurn = data.myTurn;
-    if (myTurn) {
-      $('#turnIndicator').text('Your turn!');
-    } else {
-      $('#turnIndicator').text('Your opponent\'s turn.');
-    }
+    handleTurnMessage();
   });
 
   socket.on('update gamestate', (data) => {
-    console.log('update gamestate', data);
     updateGameState(data);
-    // let letters = data.letters;
-    // let lettersCorrect = data.lettersCorrect;
-    // let notUsedLetters = data.notUsedLetters;
-    // let playedLetters = data.playedLetters;
-    // let word = data.word;
-    // console.log('not used letters: ', notUsedLetters);
-    //
-    // renderButtons(notUsedLetters);
-    // $('.alphabet-button').click((e) => {
-    //   console.log('clicked on a letter');
-    //   if (myTurn) {
-    //     let $target = $(e.target);
-    //     console.log($target.val());
-    //     $target.prop('disabled', true);
-    //     socket.emit('check letter', {
-    //       player: session,
-    //       letter: $target.val()
-    //     });
-    //     myTurn = false;
-    //   }
-    // });
   });
 });
 
-
 const gameStart = (data) => {
-  // $('#alphabet-buttons').
   console.log('game started', data);
   gameState = data.gameState;
   $('.challengeUserBtn').hide();
@@ -186,10 +152,16 @@ const renderButtons = (alphabet) => {
 }
 
 const challengeUser = (id) => {
-  // console.log(session);
-  // console.log(`you: ${session.userId} are challenging user ${id}`);
   socket.emit('challenge user', {
     challenger: session.userId,
     challenged: id
   });
+}
+
+const handleTurnMessage = () => {
+  if (myTurn) {
+    $('#turnIndicator').text('Your turn!');
+  } else {
+    $('#turnIndicator').text('Your opponent\'s turn.');
+  }
 }
