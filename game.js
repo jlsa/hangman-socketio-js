@@ -1,3 +1,4 @@
+const Utils = require('./utils.js');
 class Game {
   constructor() {
     this.letters = [];
@@ -13,7 +14,9 @@ class Game {
       'U', 'V', 'W', 'X', 'Y',
       'Z'
     ];
+    this.uniqueLetters = [];
     this.outputString = this.createOutputString();
+    this.ended = false;
   }
 
   addLetter(letter) {
@@ -22,18 +25,34 @@ class Game {
     let indexOfLetter = this.notUsedLetters.indexOf(letter);
     this.notUsedLetters.splice(indexOfLetter, 1);
 
-    if (this.validateLetter(letter, this.letters)) {
+    if (this.validateLetter(letter, this.uniqueLetters)) {
       this.correctLetters.push(letter);
+      this.correctLetters.sort();
     } else {
       this.incorrectLetters.push(letter);
+      this.incorrectLetters.sort();
     }
     this.outputString = this.createOutputString();
+
+    // lets see if the player has won or not
+    this.checkEndConditions();
+  }
+
+  checkEndConditions() {
+    if (Utils.arraysEqual(this.correctLetters, this.uniqueLetters)) {
+      this.ended = true;
+    }
+  }
+
+  isEnded() {
+    return this.ended;
   }
 
   addWord(word) {
     this.word = word;
     this.letters = word.split("");
     this.outputString = this.createOutputString();
+    this.uniqueLetters = this.letters.unique().sort();
   }
 
   addPlayer(player) {
@@ -112,12 +131,13 @@ class Game {
       lettersIncorrect: this.incorrectLetters,
       playedLetters: this.playedLetters,
       notUsedLetters: this.notUsedLetters,
-      outputString: this.outputString
+      outputString: this.outputString,
+      uniqueLetters: this.uniqueLetters
     };
     return state;
   }
 
-  validateLetter(letter, letters = this.letters) {
+  validateLetter(letter, letters = this.uniqueLetters) {
     for (let i = 0; i < letters.length; i++) {
       if (letters[i] === letter) {
         return true;

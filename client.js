@@ -6,6 +6,8 @@ let playerOne;
 let playerTwo;
 let myTurn = false;
 let gameState;
+let finished = false;
+let won = false;
 
 socket.on('logging', (data) => {
   $('#updates').append('<li>' + data.message + '</li>');
@@ -14,6 +16,7 @@ socket.on('logging', (data) => {
 });
 
 const init = () => {
+  $('#endGameMessage').hide();
   $('#loggedIn').hide();
   $('#content').hide();
   $('#game').hide();
@@ -37,7 +40,22 @@ $(document).ready(() => {
       username: values.username,
       password: values.password
     });
-    // console.log(values);
+  });
+
+  socket.on('win', (data) => {
+    console.log('CONGRATS! YOU HAVE WON!');
+    $('#game').hide();
+    $('#content').hide();
+    $('#endGameMessage').show();
+    $('#endGameMessage').text('Congratulations, you have won!!');
+  });
+
+  socket.on('lost', (data) => {
+    console.log('Too bad! Better luck next time.');
+    $('#game').hide();
+    $('#content').hide();
+    $('#endGameMessage').show();
+    $('#endGameMessage').text('Too bad, you have lost! Better luck next time.');
   });
 
   socket.on('user list update', (data) => {
@@ -99,7 +117,6 @@ $(document).ready(() => {
 });
 
 const gameStart = (data) => {
-  console.log('game started', data);
   gameState = data.gameState;
   $('.challengeUserBtn').hide();
   $('#game').show();
@@ -128,6 +145,10 @@ const updateGameState = (gameState) => {
   let word = gameState.word;
   let outputString = gameState.outputString;
   renderButtons(gameState.notUsedLetters);
+
+  // usedLetters
+  $usedLetters = $('#usedLetters');
+  $usedLetters.html(playedLetters.join(' - '));
 
   $('#word').text(outputString);
 

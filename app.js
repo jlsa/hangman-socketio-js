@@ -1,6 +1,7 @@
 // https://github.com/tpiros/online-cardgame/blob/master/server.js
 const socket = require('socket.io');
 const Game = require('./game.js');
+const Utils = require('./utils.js');
 
 var http = require('http');
 var express = require('express');
@@ -102,18 +103,42 @@ io.sockets.on('connection', (socket) => {
     let player = game.getPlayer(socket.id);
     let opponent = game.getOpponent(player);
 
-    emitToPlayer(player.socketId, 'turn', {
-      myTurn: false
-    });
-    emitToPlayer(player.socketId, 'logging', {
-      message: 'It is your opponents turn'
-    });
-    emitToPlayer(opponent.socketId, 'turn', {
-      myTurn: true
-    });
-    emitToPlayer(opponent.socketId, 'logging', {
-      message: 'it is turn'
-    });
+    let gameIsFinished = game.isEnded();
+    if (!gameIsFinished) {
+      emitToPlayer(player.socketId, 'turn', {
+        myTurn: false
+      });
+      emitToPlayer(player.socketId, 'logging', {
+        message: 'It is your opponents turn'
+      });
+      emitToPlayer(opponent.socketId, 'turn', {
+        myTurn: true
+      });
+      emitToPlayer(opponent.socketId, 'logging', {
+        message: 'it is turn'
+      });
+    } else {
+      // update players ranking here
+      let user = getUserById(player.userId);
+      user.ranking += 1;
+
+      user = getUserById(opponent.userId);
+      user.ranking -= 1;
+
+      sendUserList();
+
+      emitToPlayer(player.socketId, 'win', {
+        winner: player,
+        loser: opponent
+      });
+      emitToPlayer(opponent.socketId, 'lost', {
+        winner: player,
+        loser: opponent
+      });
+      emitToPlayers(game.getPlayers(), 'logging', {
+        message: `${player.username} has won!`
+      });
+    }
   });
 
   // handles login
