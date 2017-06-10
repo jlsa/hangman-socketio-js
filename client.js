@@ -87,11 +87,31 @@ $(document).ready(() => {
   socket.on('game start', (data) => {
     // console.log(data);
     gameStart(data);
+    if (myTurn) {
+      $('#turnIndicator').text('Your turn!');
+    } else {
+      $('#turnIndicator').text('Your opponent\'s turn.');
+    }
+    // usedLetters
   });
 
   socket.on('turn', (data) => {
     console.log(data);
     myTurn = data.myTurn;
+    if (myTurn) {
+      $('#turnIndicator').text('Your turn!');
+    } else {
+      $('#turnIndicator').text('Your opponent\'s turn.');
+    }
+  });
+
+  socket.on('update gamestate', (data) => {
+    console.log(data);
+    let letters = data.letters;
+    let lettersCorrect = data.lettersCorrect;
+    let notUsedLetters = data.notUsedLetters;
+    let playedLetters = data.playedLetters;
+    let word = data.word;
   });
 });
 
@@ -102,6 +122,7 @@ const gameStart = (data) => {
   gameState = data.gameState;
   $('.challengeUserBtn').hide();
   $('#game').show();
+  $('.showPlayerName').text(session.username);
 
   $userList = $('#playersInGame');
   $userList.html('');
@@ -126,6 +147,7 @@ const gameStart = (data) => {
     myTurn = true;
   }
 
+  // should this be IN gameStart method?
   $('.alphabet-button').click((e) => {
     if (myTurn) {
       let $target = $(e.target);
@@ -139,10 +161,18 @@ const gameStart = (data) => {
     }
   });
 
-  socket.on('update gamestate', (data) => {
-    gameState = data.gameState
-    console.log(gameState);
-  });
+  // socket.on('update gamestate', (data) => {
+  //   console.log(data);
+  //   let letters = data.letters;
+  //   let lettersCorrect = data.lettersCorrect;
+  //   let notUsedLetters = data.notUsedLetters;
+  //   let playedLetters = data.playedLetters;
+  //   let word = data.word;
+  // });
+  //
+  // socket.on('turn', (data) => {
+  //   myTurn = data.myTurn;
+  // });
 };
 
 const challengeUser = (id) => {

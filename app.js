@@ -28,43 +28,43 @@ const users = [
   {
     userId: 1,
     username: 'joel',
-    password: 'a',
+    password: '',
     ranking: 10,
     inGame: false
   }, {
     userId: 2,
     username: 'test',
-    password: 'a',
+    password: '',
     ranking: 5,
     inGame: false
   }, {
     userId: 3,
     username: 'test1',
-    password: 'a',
+    password: '',
     ranking: 2,
     inGame: false
   }, {
     userId: 4,
     username: 'test2',
-    password: 'a',
+    password: '',
     ranking: 4,
     inGame: false
   }, {
     userId: 5,
     username: 'test3',
-    password: 'a',
+    password: '',
     ranking: 2,
     inGame: false
   }, {
     userId: 6,
     username: 'test4',
-    password: 'a',
+    password: '',
     ranking: 2,
     inGame: false
   }, {
     userId: 7,
     username: 'test5',
-    password: 'a',
+    password: '',
     ranking: 1,
     inGame: false
   }
@@ -97,14 +97,37 @@ io.sockets.on('connection', (socket) => {
     let game = getGame(socket.id);
     console.log('check letter', data);
     let correctLetter = game.addLetter(data.letter);
-    emitToPlayers(game.getPlayers(), 'update gamestate', game.getState());
-    emitToPlayer(data.player, 'turn', {
+    let gameState = game.getState();
+    // console.log('gamestate', gameState);
+    emitToPlayers(game.getPlayers(), 'update gamestate', gameState);
+
+    let player = game.getPlayer(socket.id);
+    let opponent = game.getOpponent(player);
+
+    emitToPlayer(player.socketId, 'turn', {
       myTurn: false
     });
-    emitToPlayer(game.getOtherPlayer(data.player), 'turn', {
+    emitToPlayer(player.socketId, 'logging', {
+      message: 'It is your opponents turn'
+    });
+    emitToPlayer(opponent.socketId, 'turn', {
       myTurn: true
     });
-
+    emitToPlayer(opponent.socketId, 'logging', {
+      message: 'it is turn'
+    });
+    // emitToPlayer(data.player, 'turn', {
+    //   myTurn: false
+    // });
+    // emitToPlayer(data.player, 'logging', {
+    //   message: 'It is your opponents turn'
+    // });
+    // emitToPlayer(game.getOpponent(data.player), 'turn', {
+    //   myTurn: true
+    // });
+    // emitToPlayer(game.getOpponent(data.player), 'logging', {
+    //   message: 'It is your turn'
+    // });
   });
 
   // handles login
@@ -215,6 +238,7 @@ const logoutPlayer = (id) => {
 }
 
 const emitToPlayer = (socketId, event, data) => {
+  console.log(`emitting '${event}' to ${socketId}`, data);
   io.to(socketId).emit(event, data);
 };
 

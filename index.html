@@ -90,7 +90,7 @@
         </div>
         <div class="col-md-6 col-sm-6" id="game">
           <div class="alert alert-info">
-          You are playing the game now!
+          <span class="showPlayerName">Username</span>, you are playing the game now!
           </div>
           <ul id="playersInGame"></ul>
         </div>
@@ -100,17 +100,10 @@
         </div>
         <div class="col-md-4">
           <div>
-            <span>Your turn | Oppenents turn</span>
+            <span id="turnIndicator">Your turn | Oppenents turn</span>
           </div>
-          <div class="row">
-            <div class="col-sm-6">
-              Your letters
-            </div>
-            <div class="col-sm-6">
-              Opponent's letters
-              <br>
-              a b c d e
-            </div>
+          <div class="row" id="usedLetters">
+
           </div>
         </div>
         <div class="col-md-4">

@@ -16,7 +16,7 @@ class Game {
 
   addLetter(letter) {
     this.playedLetters.push(letter);
-    if ($.inArray(letter, this.letters)) {
+    if (letter.includes(this.letters)) {
       this.correctLetters.push(letter);
       return true;
     } else {
@@ -37,6 +37,18 @@ class Game {
 
   getPlayers() {
     return this.players;
+  }
+
+  getPlayer(socketId) {
+    let player = null;
+    for (let i = 0; i < this.players.length; i++) {
+      let temp = this.players[i];
+      if (temp.socketId === socketId) {
+        player = temp;
+        break;
+      }
+    }
+    return player;
   }
 
   getPlayerOne() {
@@ -64,6 +76,14 @@ class Game {
     return false;
   }
 
+  getOpponent(player) {
+    if (player.socketId === this.playerOne.socketId) {
+      return this.playerTwo;
+    } else {
+      return this.playerOne;
+    }
+  }
+
   getState() {
     return {
       playerOne: this.getPlayerOne(),
@@ -73,7 +93,7 @@ class Game {
       lettersCorrect: this.correctLetters,
       lettersIncorrect: this.incorrectLetters,
       playedLetters: this.playedLetters,
-      notUsedLetters: this.notUsedLetters
+      notUsedLetters: this.notUsedLetters,
     };
   }
 }
