@@ -18,10 +18,7 @@ app.get('/', (req, res) => {
 });
 
 const words = [
-  'AAN', 'DANS', 'SCHOOL', 'FIETS', 'LAPTOP',
-  'MAN', 'PLANT', 'MUIS', 'RAT', 'TELEVISIE',
-  'VROUW', 'KAST', 'AREND', 'KOE', 'BANK',
-  'VENTILATOR', 'HOND', 'VOGEL', 'KIP', 'AAP'
+  'VENTILATOR'
 ];
 const games = [];
 const loggedInUsers = [];
