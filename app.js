@@ -8,7 +8,7 @@ var express = require('express');
 var app = express();
 
 app.use('/', express.static(__dirname + "/"));
-
+app.use('/resources', express.static(__dirname + "/resources"));
 const server = http.createServer(app);
 server.listen(8080);
 const io = socket.listen(server);
@@ -19,7 +19,7 @@ app.get('/', (req, res) => {
 
 
 const words = [
-  'VENTILATOR'
+  'ARCHITECTURE', 'VENTILATOR', 'COLLECTOR', 'ANATOMICAL', 'JAZZ',
 ];
 const games = [];
 const loggedInUsers = [];
@@ -76,10 +76,14 @@ io.sockets.on('connection', (socket) => {
     message: 'a new socket is connected'
   });
 
-  socket.on('quit game', () => {
-
+  socket.on('forfeit', () => {
+    let game = getGame(socket.id);
+    let player = game.getPlayer(socket.id);
+    let opponent = game.getOpponent(player);
+    game.forfeit(player);
+    handleFinishedGame(game, player, opponent);
   });
-  
+
   socket.on('i know the word', (data) => {
     // todo add validation if player can really do this!
     let game = getGame(socket.id);
@@ -251,7 +255,7 @@ const emitToPlayers = (players, event, data) => {
 };
 
 const getRandomWord = () => {
-  return words[0];
+  return words[Math.floor(Math.random() * words.length)];
 };
 
 const deleteGame = (socketId) => {
@@ -290,6 +294,7 @@ const handleFinishedGame = (game, player, opponent) => {
   loggedInUsers[player.userId - 1].inGame = false;
   loggedInUsers[opponent.userId - 1].inGame = false;
   sendUserList();
+
   if (game.getEndState() == 'won') {
     updateRanking(getUserById(player.userId), 'win');
     updateRanking(getUserById(opponent.userId), 'loss');
@@ -306,12 +311,30 @@ const handleFinishedGame = (game, player, opponent) => {
     });
   }
 
-  if (game.getEndState() == 'loss') {
+  if (game.getEndState() == 'lost-both') {
     updateRanking(getUserById(player.userId), 'loss');
     updateRanking(getUserById(opponent.userId), 'loss');
     emitToPlayers(game.getPlayers(), 'lost-both', {});
     emitToPlayers(game.getPlayers(), 'logging', {
       message: `${player.username} has won!`
+    });
+  }
+
+  if (game.getEndState() == 'forfeited') {
+    console.log('forfeited!!')
+    updateRanking(getUserById(player.userId), 'loss');
+    updateRanking(getUserById(opponent.userId), 'win');
+
+    emitToPlayer(player.socketId, 'lost', {
+      winner: opponent,
+      loser: player
+    });
+    emitToPlayer(opponent.socketId, 'win', {
+      winner: opponent,
+      loser: player
+    });
+    emitToPlayers(game.getPlayers(), 'logging', {
+      message: `${player.username} forfeited thus ${opponent.username} wins!`
     });
   }
   deleteGame(player.socketId);

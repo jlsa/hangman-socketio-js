@@ -73,6 +73,15 @@ $(document).ready(() => {
     session.inGame = false;
   });
 
+  socket.on('forfeited', (data) => {
+    console.log('Why did you give up?');
+    $('#game').hide();
+    $('#content').hide();
+    $('#endGameMessage').show();
+    $('#endGameMessage').text(`${session.username} why did you give up? Now you've lost! :(`);
+    session.inGame = false;
+  });
+
   socket.on('user list update', (data) => {
     // console.log(data);
     loggedInUsers = data.users;
@@ -145,6 +154,10 @@ $(document).ready(() => {
   socket.on('update gamestate', (data) => {
     updateGameState(data);
   });
+
+  socket.on('forfeit', (data) => {
+
+  });
 });
 
 const gameStart = (data) => {
@@ -182,6 +195,7 @@ const updateGameState = (gameState) => {
   renderButtons(gameState.notUsedLetters);
 
   $('#guesses').text(guessAttempts);
+  $('#guessesImage').attr('src', `resources/bars-${guessAttempts}.jpg`)
 
   // usedLetters
   $usedLetters = $('#usedLetters');
@@ -234,6 +248,6 @@ const guessTheWord = () => {
   }
 }
 
-const quitGame = () => {
-  socket.emit('quit game');
+const forfeit = () => {
+  socket.emit('forfeit');
 };

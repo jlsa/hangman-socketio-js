@@ -21,6 +21,8 @@ class Game {
     this.guessAttempts = 0;
     this.endState = '';
     this.wordIsGuessed = false;
+    this.forfeited = false;
+    this.forfeitedPlayer = null;
   }
 
   addLetter(letter) {
@@ -47,7 +49,6 @@ class Game {
     if (this.wordIsGuessed) {
       this.ended = true;
       this.endState = 'won';
-      console.log('word is guessed and the player has won');
     }
 
     if (Utils.arraysEqual(this.correctLetters, this.uniqueLetters)) {
@@ -57,7 +58,12 @@ class Game {
 
     if (this.guessAttempts == 11) {
       this.ended = true;
-      this.endState = 'loss';
+      this.endState = 'lost-both';
+    }
+
+    if (this.forfeited) {
+      this.ended = true;
+      this.endState = 'forfeited';
     }
   }
 
@@ -128,8 +134,16 @@ class Game {
   }
 
   start() {
-    this.playerOne = this.players[0];
-    this.playerTwo = this.players[1];
+    let index = Math.floor(Math.random() * this.players.length) + 1;
+    // console.log(`selecting player ${index} as player one`);
+    if (index == 1) {
+      this.playerOne = this.players[0];
+      this.playerTwo = this.players[1];
+    } else {
+      this.playerOne = this.players[1];
+      this.playerTwo = this.players[0];
+    }
+    
     this.currentPlayer = this.playerOne;
   }
 
@@ -190,6 +204,10 @@ class Game {
       }
     }
     return false;
+  }
+
+  forfeit(player) {
+    this.forfeited = true;
   }
 }
 
