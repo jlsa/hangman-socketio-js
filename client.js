@@ -1,5 +1,5 @@
 const socket = io({transports: ['websocket'], upgrade: false});//.connect('http://localhost:8080');
-let session;
+let session = null;
 let loggedInUsers;
 
 let playerOne;
@@ -42,12 +42,25 @@ $(document).ready(() => {
     });
   });
 
+  socket.on('reset ui', () => {
+    init();
+  });
+
   socket.on('win', (data) => {
     console.log('CONGRATS! YOU HAVE WON!');
     $('#game').hide();
     $('#content').hide();
     $('#endGameMessage').show();
     $('#endGameMessage').text('Congratulations, you have won!!');
+    session.inGame = false;
+  });
+
+  socket.on('lost-both', (data) => {
+    console.log('Oh you both lost!');
+    $('#game').hide();
+    $('#content').hide();
+    $('#endGameMessage').show();
+    $('#endGameMessage').text('Too bad, you both lost!');
     session.inGame = false;
   });
 
@@ -63,23 +76,32 @@ $(document).ready(() => {
   socket.on('user list update', (data) => {
     // console.log(data);
     loggedInUsers = data.users;
+    if (loggedInUsers.length == 0) {
+      return;
+    }
     $userList = $('#users-list');
     $userList.html('');
+    if (session !== null) {
+      for (let i = 0; i < data.users.length; i++) {
+        let user = data.users[i];
 
-    for (let i = 0; i < data.users.length; i++) {
-      let user = data.users[i];
-
-      if (session.userId === user.userId) {
-        $userList.append(`<li>${user.username}(${user.ranking})</li>`);
-      } else {
-        if (user.inGame) {
+        if (session.userId === user.userId) {
           $userList.append(`<li>${user.username}(${user.ranking})</li>`);
         } else {
-          $userList.append(`<li>${user.username}(${user.ranking})
-            <button class="btn btn-warning btn-xs challengeUserBtn"
-              onclick="challengeUser(${user.userId})">Challenge</button>
-          </li>`);
+          if (user.inGame) {
+            $userList.append(`<li>${user.username}(${user.ranking})</li>`);
+          } else {
+            $userList.append(`<li>${user.username}(${user.ranking})
+              <button class="btn btn-warning btn-xs challengeUserBtn"
+                onclick="challengeUser(${user.userId})">Challenge</button>
+            </li>`);
+          }
         }
+      }
+    } else {
+      for (let i = 0; i < data.users.length; i++) {
+        let user = data.users[i];
+        $userList.append(`<li>${user.username}(${user.ranking})</li>`);
       }
     }
   });
@@ -153,10 +175,13 @@ const updateGameState = (gameState) => {
   let letters = gameState.letters;
   let lettersCorrect = gameState.lettersCorrect;
   let notUsedLetters = gameState.notUsedLetters;
-  let playedLetters = gameState.playedLetters;
+  let playedLetters = gameState.playedLetters.sort();
+  let guessAttempts = gameState.guessAttempts;
   let word = gameState.word;
   let outputString = gameState.outputString;
   renderButtons(gameState.notUsedLetters);
+
+  $('#guesses').text(guessAttempts);
 
   // usedLetters
   $usedLetters = $('#usedLetters');
@@ -198,3 +223,17 @@ const handleTurnMessage = () => {
     $('#turnIndicator').text('Your opponent\'s turn.');
   }
 }
+
+const guessTheWord = () => {
+  if (myTurn) {
+    let theWord = $('#i-know-the-word').val();
+    // console.log(`Lets see if it is '${theWord}'.`);
+    socket.emit('i know the word', {
+      word: theWord
+    });
+  }
+}
+
+const quitGame = () => {
+  socket.emit('quit game');
+};

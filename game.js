@@ -17,6 +17,10 @@ class Game {
     this.uniqueLetters = [];
     this.outputString = this.createOutputString();
     this.ended = false;
+    this.currentPlayer = null;
+    this.guessAttempts = 0;
+    this.endState = '';
+    this.wordIsGuessed = false;
   }
 
   addLetter(letter) {
@@ -31,6 +35,7 @@ class Game {
     } else {
       this.incorrectLetters.push(letter);
       this.incorrectLetters.sort();
+      this.guessAttempts += 1;
     }
     this.outputString = this.createOutputString();
 
@@ -39,13 +44,52 @@ class Game {
   }
 
   checkEndConditions() {
+    if (this.wordIsGuessed) {
+      this.ended = true;
+      this.endState = 'won';
+      console.log('word is guessed and the player has won');
+    }
+
     if (Utils.arraysEqual(this.correctLetters, this.uniqueLetters)) {
       this.ended = true;
+      this.endState = 'won';
     }
+
+    if (this.guessAttempts == 11) {
+      this.ended = true;
+      this.endState = 'loss';
+    }
+  }
+
+  getCurrentPlayer() {
+    return this.currentPlayer;
+  }
+
+  nextTurn() {
+    if (this.currentPlayer.userId === this.playerTwo.userId) {
+      this.currentPlayer = this.playerOne;
+    } else {
+      this.currentPlayer = this.playerTwo;
+    }
+  }
+
+  guessWord(word) {
+    if (this.word === word) {
+      this.wordIsGuessed = true;
+    } else {
+      this.guessAttempts += 1;
+    }
+    console.log(this.guessAttempts);
+    // lets see if the player has won or not
+    this.checkEndConditions();
   }
 
   isEnded() {
     return this.ended;
+  }
+
+  getEndState() {
+    return this.endState;
   }
 
   addWord(word) {
@@ -86,6 +130,7 @@ class Game {
   start() {
     this.playerOne = this.players[0];
     this.playerTwo = this.players[1];
+    this.currentPlayer = this.playerOne;
   }
 
   hasPlayer(socketId) {
@@ -132,7 +177,8 @@ class Game {
       playedLetters: this.playedLetters,
       notUsedLetters: this.notUsedLetters,
       outputString: this.outputString,
-      uniqueLetters: this.uniqueLetters
+      uniqueLetters: this.uniqueLetters,
+      guessAttempts: this.guessAttempts
     };
     return state;
   }

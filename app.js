@@ -17,6 +17,7 @@ app.get('/', (req, res) => {
   res.sendFile(__dirname + '/index.html');
 });
 
+
 const words = [
   'VENTILATOR'
 ];
@@ -70,8 +71,31 @@ const users = [
 
 io.sockets.on('connection', (socket) => {
   console.log('a socket connected');
+  sendUserList();
   io.sockets.emit('logging', {
     message: 'a new socket is connected'
+  });
+
+  socket.on('quit game', () => {
+
+  });
+  
+  socket.on('i know the word', (data) => {
+    // todo add validation if player can really do this!
+    let game = getGame(socket.id);
+    let player = game.getPlayer(socket.id);
+    // let user = getUserById(player.userId);
+    let opponent = game.getOpponent(player);
+
+    game.guessWord(data.word.toUpperCase());
+    let gameState = game.getState();
+    emitToPlayers(game.getPlayers(), 'update gamestate', gameState);
+
+    if (game.isEnded()) {
+      handleFinishedGame(game, player, opponent);
+    } else {
+      handleTurn(player, opponent);
+    }
   });
 
   socket.on('challenge user', (data) => {
@@ -97,6 +121,7 @@ io.sockets.on('connection', (socket) => {
 
   socket.on('check letter', (data) => {
     let game = getGame(socket.id);
+    // todo add validation if player can really do this!
     game.addLetter(data.letter);
     let gameState = game.getState();
     emitToPlayers(game.getPlayers(), 'update gamestate', gameState);
@@ -106,42 +131,9 @@ io.sockets.on('connection', (socket) => {
 
     let gameIsFinished = game.isEnded();
     if (!gameIsFinished) {
-      emitToPlayer(player.socketId, 'turn', {
-        myTurn: false
-      });
-      emitToPlayer(player.socketId, 'logging', {
-        message: 'It is your opponents turn'
-      });
-      emitToPlayer(opponent.socketId, 'turn', {
-        myTurn: true
-      });
-      emitToPlayer(opponent.socketId, 'logging', {
-        message: 'it is turn'
-      });
+      handleTurn(player, opponent);
     } else {
-      // update players ranking here
-      let user = getUserById(player.userId);
-      user.ranking += 1;
-
-      user = getUserById(opponent.userId);
-      user.ranking -= 1;
-
-      loggedInUsers[player.userId - 1].inGame = false;
-      loggedInUsers[opponent.userId - 1].inGame = false;
-      sendUserList();
-
-      emitToPlayer(player.socketId, 'win', {
-        winner: player,
-        loser: opponent
-      });
-      emitToPlayer(opponent.socketId, 'lost', {
-        winner: player,
-        loser: opponent
-      });
-      emitToPlayers(game.getPlayers(), 'logging', {
-        message: `${player.username} has won!`
-      });
-      deleteGame(socket.id);
+      handleFinishedGame(game, player, opponent);
     }
   });
 
@@ -220,12 +212,9 @@ io.sockets.on('connection', (socket) => {
 });
 
 const sendUserList = () => {
-  console.log(loggedInUsers);
-  for (let i = 0; i < loggedInUsers.length; i++) {
-    io.to(loggedInUsers[i].socketId).emit('user list update', {
-      users: loggedInUsers
-    });
-  }
+  io.sockets.emit('user list update', {
+    users: loggedInUsers
+  });
 };
 
 const getUserById = (id) => {
@@ -243,9 +232,9 @@ const logoutPlayer = (id) => {
     user = loggedInUsers[i];
     if (user.socketId == id) {
       deleteGame(id);
-      sendUserList();
       let index = loggedInUsers.indexOf(user);
       loggedInUsers.splice(index, 1);
+      sendUserList();
       break;
     }
   }
@@ -290,4 +279,65 @@ const getGame = (socketId) => {
     }
   }
   return game;
+};
+
+const resetClient = () => {
+  io.sockets.emit('reset ui');
+};
+
+const handleFinishedGame = (game, player, opponent) => {
+  // update players ranking here
+  loggedInUsers[player.userId - 1].inGame = false;
+  loggedInUsers[opponent.userId - 1].inGame = false;
+  sendUserList();
+  if (game.getEndState() == 'won') {
+    updateRanking(getUserById(player.userId), 'win');
+    updateRanking(getUserById(opponent.userId), 'loss');
+    emitToPlayer(player.socketId, 'win', {
+      winner: player,
+      loser: opponent
+    });
+    emitToPlayer(opponent.socketId, 'lost', {
+      winner: player,
+      loser: opponent
+    });
+    emitToPlayers(game.getPlayers(), 'logging', {
+      message: `${player.username} has won!`
+    });
+  }
+
+  if (game.getEndState() == 'loss') {
+    updateRanking(getUserById(player.userId), 'loss');
+    updateRanking(getUserById(opponent.userId), 'loss');
+    emitToPlayers(game.getPlayers(), 'lost-both', {});
+    emitToPlayers(game.getPlayers(), 'logging', {
+      message: `${player.username} has won!`
+    });
+  }
+  deleteGame(player.socketId);
+};
+
+const updateRanking = (player, state) => {
+  if (state == 'win') {
+    player.ranking += 1;
+  }
+
+  if (state == 'loss') {
+    player.ranking -= 1;
+  }
+};
+
+const handleTurn = (player, opponent) => {
+  emitToPlayer(player.socketId, 'turn', {
+    myTurn: false
+  });
+  emitToPlayer(player.socketId, 'logging', {
+    message: 'It is your opponents turn'
+  });
+  emitToPlayer(opponent.socketId, 'turn', {
+    myTurn: true
+  });
+  emitToPlayer(opponent.socketId, 'logging', {
+    message: 'It is your turn'
+  });
 };
