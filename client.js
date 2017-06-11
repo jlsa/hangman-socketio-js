@@ -27,6 +27,12 @@ const init = () => {
 
 $(document).ready(() => {
   init();
+  $("#logout").on('click', (e) => {
+    socket.emit('logout', {
+      session: session
+    });
+  });
+  
   $('#login-form').submit((event) => {
     event.preventDefault();
     let $inputs = $('#login-form :input');
@@ -127,12 +133,6 @@ $(document).ready(() => {
     // console.log(data);
   });
 
-  $("#logout").on('click', (e) => {
-    socket.emit('logout', {
-      session: session
-    });
-  });
-
   socket.on('logout success', (data) => {
     $('#loggedIn').hide();
     $('#login-form').show();
@@ -141,17 +141,16 @@ $(document).ready(() => {
   });
 
   socket.on('game start', (data) => {
-    // console.log(data);
     gameStart(data);
-    handleTurnMessage();
+
   });
+
   socket.on('game stop', (data) => {
-    console.log('game stop called');
     let reason = data.reason;
     gameStop(data);
   });
+
   socket.on('game update', (data) => {
-    console.log('game updated called');
     updateGameState(data);
   })
 
@@ -207,6 +206,7 @@ const gameStart = (data) => {
   }
 
   updateGameState(data.gameState);
+  handleTurnMessage();
 };
 
 const updateGameState = (gameState) => {

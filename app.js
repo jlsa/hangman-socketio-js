@@ -1,11 +1,12 @@
-// https://github.com/tpiros/online-cardgame/blob/master/server.js
 const socket = require('socket.io');
 const Game = require('./game.js');
 const Utils = require('./utils.js');
+const fs = require('fs');
+const readline = require('readline');
 
-var http = require('http');
-var express = require('express');
-var app = express();
+const http = require('http');
+const express = require('express');
+const app = express();
 
 app.use('/', express.static(__dirname + "/"));
 app.use('/resources', express.static(__dirname + "/resources"));
@@ -17,10 +18,40 @@ app.get('/', (req, res) => {
   res.sendFile(__dirname + '/index.html');
 });
 
+const filename = './words.txt';
+const rl = readline.createInterface({
+  input: fs.createReadStream(filename)
+});
 
-const words = [
-  'ARCHITECTURE', 'VENTILATOR', 'COLLECTOR', 'ANATOMICAL', 'JAZZ',
-];
+global.words = [];
+rl.on('line', (line) => {
+  // words = line.split(', ');
+  let temp = line.split(', ');
+  for (let i = 0; i < temp.length; i++) {
+    global.words.push(temp[i]);
+  }
+  // console.log(temp);
+  // console.log(global.words);
+});
+
+// rl.on('close', () => {
+//   console.log(global.words);
+// });
+// const readWordsFromFile = (filename) => {
+//   let rl = readline.createInterface({
+//     input: fs.createReadStream(filename)
+//   });
+//   let words = [];
+//   rl.on('line', (line) => {
+//     words = line.split(', ');
+//     // console.log(line.split(', '));
+//   });
+//   console.log(words);
+//   return words;
+// };
+// const words = ['DOG', 'JAZZ'];//readWordsFromFile('./words.txt');
+
+
 const games = [];
 const loggedInUsers = [];
 const users = [
@@ -255,7 +286,7 @@ const emitToPlayers = (players, event, data) => {
 };
 
 const getRandomWord = () => {
-  return words[Math.floor(Math.random() * words.length)];
+  return global.words[Math.floor(Math.random() * global.words.length)];
 };
 
 const deleteGame = (socketId) => {
@@ -269,7 +300,6 @@ const deleteGame = (socketId) => {
       break;
     }
   }
-  console.log(loggedInUsers);
   games.splice(index, 1);
 };
 
@@ -290,8 +320,6 @@ const resetClient = () => {
 };
 
 const handleFinishedGame = (game, player, opponent) => {
-  console.log(game.getEndState());
-  // update players ranking here
   loggedInUsers[player.userId - 1].inGame = false;
   loggedInUsers[opponent.userId - 1].inGame = false;
   sendUserList();
@@ -322,7 +350,6 @@ const handleFinishedGame = (game, player, opponent) => {
   }
 
   if (game.getEndState() == 'forfeited') {
-    console.log('forfeited!!');
     updateRanking(getUserById(player.userId), 'loss');
     updateRanking(getUserById(opponent.userId), 'win');
 
