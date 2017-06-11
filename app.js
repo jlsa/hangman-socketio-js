@@ -93,7 +93,7 @@ io.sockets.on('connection', (socket) => {
 
     game.guessWord(data.word.toUpperCase());
     let gameState = game.getState();
-    emitToPlayers(game.getPlayers(), 'update gamestate', gameState);
+    emitToPlayers(game.getPlayers(), 'game update', gameState);
 
     if (game.isEnded()) {
       handleFinishedGame(game, player, opponent);
@@ -128,7 +128,7 @@ io.sockets.on('connection', (socket) => {
     // todo add validation if player can really do this!
     game.addLetter(data.letter);
     let gameState = game.getState();
-    emitToPlayers(game.getPlayers(), 'update gamestate', gameState);
+    emitToPlayers(game.getPlayers(), 'game update', gameState);
 
     let player = game.getPlayer(socket.id);
     let opponent = game.getOpponent(player);
@@ -290,6 +290,7 @@ const resetClient = () => {
 };
 
 const handleFinishedGame = (game, player, opponent) => {
+  console.log(game.getEndState());
   // update players ranking here
   loggedInUsers[player.userId - 1].inGame = false;
   loggedInUsers[opponent.userId - 1].inGame = false;
@@ -321,15 +322,12 @@ const handleFinishedGame = (game, player, opponent) => {
   }
 
   if (game.getEndState() == 'forfeited') {
-    console.log('forfeited!!')
+    console.log('forfeited!!');
     updateRanking(getUserById(player.userId), 'loss');
     updateRanking(getUserById(opponent.userId), 'win');
 
-    emitToPlayer(player.socketId, 'lost', {
-      winner: opponent,
-      loser: player
-    });
-    emitToPlayer(opponent.socketId, 'win', {
+    emitToPlayers(game.getPlayers(), 'game stop', {
+      reason: 'forfeit',
       winner: opponent,
       loser: player
     });
@@ -337,6 +335,9 @@ const handleFinishedGame = (game, player, opponent) => {
       message: `${player.username} forfeited thus ${opponent.username} wins!`
     });
   }
+  loggedInUsers[player.userId - 1].inGame = false;
+  loggedInUsers[opponent.userId - 1].inGame = false;
+  sendUserList();
   deleteGame(player.socketId);
 };
 

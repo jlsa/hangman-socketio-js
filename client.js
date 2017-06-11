@@ -145,20 +145,45 @@ $(document).ready(() => {
     gameStart(data);
     handleTurnMessage();
   });
+  socket.on('game stop', (data) => {
+    console.log('game stop called');
+    let reason = data.reason;
+    gameStop(data);
+  });
+  socket.on('game update', (data) => {
+    console.log('game updated called');
+    updateGameState(data);
+  })
 
   socket.on('turn', (data) => {
     myTurn = data.myTurn;
     handleTurnMessage();
   });
-
-  socket.on('update gamestate', (data) => {
-    updateGameState(data);
-  });
-
-  socket.on('forfeit', (data) => {
-
-  });
 });
+
+const gameStop = (data) => {
+  let winner = data.winner;
+  let loser = data.loser;
+  session.inGame = false;
+  $('.challengeUserBtn').show();
+  $('#game').hide();
+  $('#content').hide();
+  $('#endGameMessage').show();
+  if (winner.userId === session.userId) {
+    if (data.reason == 'forfeit') {
+      $('#endGameMessage').text(`${winner.username} has won because your opponent ${loser.username} has forfeited the game.`);
+    } else {
+      $('#endGameMessage').text(`.. game has stopped ..`);
+    }
+  }
+  if (loser.userId === session.userId) {
+    if (data.reason == 'forfeit') {
+      $('#endGameMessage').text(`${winner.username} has won because you forfeited the game.`);
+    } else {
+      $('#endGameMessage').text(`.. game has stopped ..`);
+    }
+  }
+};
 
 const gameStart = (data) => {
   gameState = data.gameState;

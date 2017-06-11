@@ -143,7 +143,7 @@ class Game {
       this.playerOne = this.players[1];
       this.playerTwo = this.players[0];
     }
-    
+
     this.currentPlayer = this.playerOne;
   }
 
@@ -208,6 +208,7 @@ class Game {
 
   forfeit(player) {
     this.forfeited = true;
+    this.checkEndConditions();
   }
 }
 
