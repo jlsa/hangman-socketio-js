@@ -18,8 +18,8 @@ socket.on('logging', (data) => {
 const init = () => {
   $('#endGameMessage').hide();
   $('#loggedIn').hide();
-  $('#content').hide();
   $('#game').hide();
+  $('#content').hide();
   $('form').submit((event) => {
     event.preventDefault();
   });
@@ -48,6 +48,7 @@ $(document).ready(() => {
     $('#content').hide();
     $('#endGameMessage').show();
     $('#endGameMessage').text('Congratulations, you have won!!');
+    session.inGame = false;
   });
 
   socket.on('lost', (data) => {
@@ -56,6 +57,7 @@ $(document).ready(() => {
     $('#content').hide();
     $('#endGameMessage').show();
     $('#endGameMessage').text('Too bad, you have lost! Better luck next time.');
+    session.inGame = false;
   });
 
   socket.on('user list update', (data) => {
@@ -63,13 +65,21 @@ $(document).ready(() => {
     loggedInUsers = data.users;
     $userList = $('#users-list');
     $userList.html('');
+
     for (let i = 0; i < data.users.length; i++) {
       let user = data.users[i];
-      if (session.userId !== user.userId) {
-        $userList.append(`<li>${user.username} - Ranking(${user.ranking})
-          <button class="btn btn-warning btn-xs challengeUserBtn" onclick="challengeUser(${user.userId})">Challenge</button></li>`);
+
+      if (session.userId === user.userId) {
+        $userList.append(`<li>${user.username}(${user.ranking})</li>`);
       } else {
-        $userList.append(`<li>${user.username} - Ranking(${user.ranking})</li>`);
+        if (user.inGame) {
+          $userList.append(`<li>${user.username}(${user.ranking})</li>`);
+        } else {
+          $userList.append(`<li>${user.username}(${user.ranking})
+            <button class="btn btn-warning btn-xs challengeUserBtn"
+              onclick="challengeUser(${user.userId})">Challenge</button>
+          </li>`);
+        }
       }
     }
   });
@@ -79,7 +89,6 @@ $(document).ready(() => {
     $('#login-form').hide();
     $('#loggedIn').show();
     $('#users-list').show();
-    $('#content').show();
     session = data.session;
   });
 
@@ -120,7 +129,10 @@ const gameStart = (data) => {
   gameState = data.gameState;
   $('.challengeUserBtn').hide();
   $('#game').show();
+  $('#content').show();
+  $('#endGameMessage').hide();
   $('.showPlayerName').text(session.username);
+  session.inGame = true;
 
   $userList = $('#playersInGame');
   $userList.html('');

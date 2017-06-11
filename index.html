@@ -41,6 +41,9 @@
       position: fixed;
 
     }
+    #word {
+      font-size: 3em;
+    }
     </style>
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
@@ -85,7 +88,7 @@
         <div class="col-md-6 col-sm-6">
           <button class="btn btn-primary btn-xs" id="logout">Log out</button>
           <br>
-          <strong>Logged in players</strong>
+          <strong>Players</strong>
           <ul id="users-list"></ul>
         </div>
         <div class="col-md-6 col-sm-6" id="endGameMessage"></div>

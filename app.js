@@ -81,6 +81,10 @@ io.sockets.on('connection', (socket) => {
     // console.log(data);
     let challenger = getUserById(data.challenger);
     let challenged = getUserById(data.challenged);
+
+    loggedInUsers[challenger.userId - 1].inGame = true;
+    loggedInUsers[challenged.userId - 1].inGame = true;
+    sendUserList();
     // lets create a game for the two players if they are NOT currently IN a game
     let game = new Game();
     game.addWord(getRandomWord());
@@ -125,6 +129,8 @@ io.sockets.on('connection', (socket) => {
       user = getUserById(opponent.userId);
       user.ranking -= 1;
 
+      loggedInUsers[player.userId - 1].inGame = false;
+      loggedInUsers[opponent.userId - 1].inGame = false;
       sendUserList();
 
       emitToPlayer(player.socketId, 'win', {
@@ -138,6 +144,7 @@ io.sockets.on('connection', (socket) => {
       emitToPlayers(game.getPlayers(), 'logging', {
         message: `${player.username} has won!`
       });
+      deleteGame(socket.id);
     }
   });
 
@@ -216,6 +223,7 @@ io.sockets.on('connection', (socket) => {
 });
 
 const sendUserList = () => {
+  console.log(loggedInUsers);
   for (let i = 0; i < loggedInUsers.length; i++) {
     io.to(loggedInUsers[i].socketId).emit('user list update', {
       users: loggedInUsers
@@ -237,6 +245,8 @@ const logoutPlayer = (id) => {
   for (let i = 0; i < loggedInUsers.length; i++) {
     user = loggedInUsers[i];
     if (user.socketId == id) {
+      deleteGame(id);
+      sendUserList();
       let index = loggedInUsers.indexOf(user);
       loggedInUsers.splice(index, 1);
       break;
@@ -256,6 +266,21 @@ const emitToPlayers = (players, event, data) => {
 
 const getRandomWord = () => {
   return words[0];
+};
+
+const deleteGame = (socketId) => {
+  let index = -1;
+  for (let i = 0; i < games.length; i++) {
+    let game = games[i];
+    if (game.hasPlayer(socketId)) {
+      loggedInUsers[game.getPlayerOne().userId - 1].inGame = false;
+      loggedInUsers[game.getPlayerOne().userId - 1].inGame = false;
+      index = i;
+      break;
+    }
+  }
+  console.log(loggedInUsers);
+  games.splice(index, 1);
 };
 
 const getGame = (socketId) => {
