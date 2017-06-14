@@ -85,7 +85,7 @@ class Game {
     } else {
       this.guessAttempts += 1;
     }
-    console.log(this.guessAttempts);
+    // console.log(this.guessAttempts);
     // lets see if the player has won or not
     this.checkEndConditions();
   }
