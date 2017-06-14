@@ -2,6 +2,8 @@ const socket = io({transports: ['websocket'], upgrade: false});//.connect('http:
 let session = null;
 let loggedInUsers;
 
+let token = null;
+
 let playerOne;
 let playerTwo;
 let myTurn = false;
@@ -32,7 +34,7 @@ $(document).ready(() => {
       session: session
     });
   });
-  
+
   $('#login-form').submit((event) => {
     event.preventDefault();
     let $inputs = $('#login-form :input');

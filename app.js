@@ -3,6 +3,7 @@ const Game = require('./game.js');
 const Utils = require('./utils.js');
 const fs = require('fs');
 const readline = require('readline');
+const axios = require('axios');
 
 const http = require('http');
 const express = require('express');
@@ -18,6 +19,8 @@ app.get('/', (req, res) => {
   res.sendFile(__dirname + '/index.html');
 });
 
+
+
 const filename = './words.txt';
 const rl = readline.createInterface({
   input: fs.createReadStream(filename)
@@ -25,32 +28,11 @@ const rl = readline.createInterface({
 
 global.words = [];
 rl.on('line', (line) => {
-  // words = line.split(', ');
   let temp = line.split(', ');
   for (let i = 0; i < temp.length; i++) {
     global.words.push(temp[i]);
   }
-  // console.log(temp);
-  // console.log(global.words);
 });
-
-// rl.on('close', () => {
-//   console.log(global.words);
-// });
-// const readWordsFromFile = (filename) => {
-//   let rl = readline.createInterface({
-//     input: fs.createReadStream(filename)
-//   });
-//   let words = [];
-//   rl.on('line', (line) => {
-//     words = line.split(', ');
-//     // console.log(line.split(', '));
-//   });
-//   console.log(words);
-//   return words;
-// };
-// const words = ['DOG', 'JAZZ'];//readWordsFromFile('./words.txt');
-
 
 const games = [];
 const loggedInUsers = [];
@@ -174,50 +156,51 @@ io.sockets.on('connection', (socket) => {
 
   // handles login
   socket.on('auth', (data) => {
-    let user;
-    let sessionObj;
-    let authSuccess = false;
-    for (let i = 0; i < users.length; i++) {
-      user = users[i];
-      if (data.username === user.username &&
-          data.password === user.password) {
-        // todo check if user is already logged in..
-        sessionObj = {
-          username: user.username,
-          userId: user.userId,
-          ranking: user.ranking,
-          socketId: socket.id,
-          inGame: user.inGame
-        };
-        loggedInUsers.push(sessionObj);
-        authSuccess = true;
-        break;
-      }
-    }
-
-    if (authSuccess) {
-      io.to(socket.id).emit('logging', {
-        message: 'auth success',
-      });
-      io.to(socket.id).emit('auth success', {
-        session: sessionObj
-      });
-      console.log('auth success');
-      io.sockets.emit('logging', {
-        message: 'There are ' + loggedInUsers.length + ' users logged in'
-      });
-
-      sendUserList();
-
-    } else {
-      io.to(socket.id).emit('logging', {
-        message: 'auth failure'
-      });
-      io.to(socket.id).emit('auth failure', {
-        message: 'auth failed!'
-      });
-      console.log('auth failure');
-    }
+    getToken(data.username, data.password, socket.id);
+    // let user;
+    // let sessionObj;
+    // let authSuccess = false;
+    // for (let i = 0; i < users.length; i++) {
+    //   user = users[i];
+    //   if (data.username === user.username &&
+    //       data.password === user.password) {
+    //     // todo check if user is already logged in..
+    //     sessionObj = {
+    //       username: user.username,
+    //       userId: user.userId,
+    //       ranking: user.ranking,
+    //       socketId: socket.id,
+    //       inGame: user.inGame
+    //     };
+    //     loggedInUsers.push(sessionObj);
+    //     authSuccess = true;
+    //     break;
+    //   }
+    // }
+    //
+    // if (authSuccess) {
+    //   io.to(socket.id).emit('logging', {
+    //     message: 'auth success',
+    //   });
+    //   io.to(socket.id).emit('auth success', {
+    //     session: sessionObj
+    //   });
+    //   console.log('auth success');
+    //   io.sockets.emit('logging', {
+    //     message: 'There are ' + loggedInUsers.length + ' users logged in'
+    //   });
+    //
+    //   sendUserList();
+    //
+    // } else {
+    //   io.to(socket.id).emit('logging', {
+    //     message: 'auth failure'
+    //   });
+    //   io.to(socket.id).emit('auth failure', {
+    //     message: 'auth failed!'
+    //   });
+    //   console.log('auth failure');
+    // }
   });
 
   socket.on('logout', (data) => {
@@ -392,3 +375,62 @@ const handleTurn = (player, opponent) => {
     message: 'It is your turn'
   });
 };
+
+const getToken = (username, password, socketId) => {
+  // console.log(username);
+  // console.log(password);
+  // console.log(socketId);
+  const api = 'http://localhost:5000/api/v1-0/token';
+  const headers = {
+    auth: {
+      username: username,
+      password: password
+    }
+  };
+
+  const req = axios.get(api, headers)
+    .then((res) => {
+      // console.log(res);
+      loginSuccess(res.data.token, res.data.user, socketId)
+    })
+    .catch((err) => {
+      console.log(err);
+      console.log(`token request for ${username} failed`);
+    });
+}
+
+const loginSuccess = (token, user, socketId) => {
+  // console.log(`token: ${token}`);
+  // console.log(socketId);
+  let sessionObj = {
+    userId: user.id,
+    username: user.username,
+    ranking: 10,
+    inGame: false,
+    socketId: socketId
+  }
+  // console.log(sessionObj);
+
+  // sessionObj = {
+  //   username: user.username,
+  //   userId: user.userId,
+  //   ranking: user.ranking,
+  //   socketId: socket.id,
+  //   inGame: user.inGame
+  // };
+  loggedInUsers.push(sessionObj);
+
+  io.to(socketId).emit('logging', {
+    message: `auth success - ${user.username} is logged in.`,
+  });
+  io.to(socketId).emit('auth success', {
+    session: sessionObj
+  });
+
+  console.log('auth success');
+  io.sockets.emit('logging', {
+    message: 'There are ' + loggedInUsers.length + ' users logged in'
+  });
+
+  sendUserList();
+}
