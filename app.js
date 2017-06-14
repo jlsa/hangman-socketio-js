@@ -119,9 +119,15 @@ io.sockets.on('connection', (socket) => {
     // console.log(data);
     let challenger = getUserById(data.challenger);
     let challenged = getUserById(data.challenged);
+    console.log(challenger);
 
-    loggedInUsers[challenger.userId - 1].inGame = true;
-    loggedInUsers[challenged.userId - 1].inGame = true;
+    challenger.inGame = true;
+    challenged.inGame = true;
+    // loggedInUsers[getLoggedInUserIndex(challenger.userId)].inGame = true;
+    // loggedInUsers[getLoggedInUserIndex(challenged.userId)].inGame = true;
+    updatePlayStatus(challenger, true);
+    updatePlayStatus(challenged, true);
+
     sendUserList();
     // lets create a game for the two players if they are NOT currently IN a game
     let game = new Game();
@@ -204,15 +210,15 @@ io.sockets.on('connection', (socket) => {
   });
 
   socket.on('logout', (data) => {
-    logoutPlayer(data.session.socketId);
+    logoutPlayer(socket.id);
 
-    io.to(data.session.socketId).emit('logging', {
+    io.to(socket.id).emit('logging', {
       message: 'Logged out success!'
     });
     io.sockets.emit('logging', {
       message: 'There are ' + loggedInUsers.length + ' users logged in'
     });
-    io.to(data.session.socketId).emit('logout success', {
+    io.to(socket.id).emit('logout success', {
       socketId: socket.id
     });
     sendUserList();
@@ -220,7 +226,6 @@ io.sockets.on('connection', (socket) => {
 
   socket.on('disconnect', () => {
     logoutPlayer(socket.id);
-
     io.sockets.emit('logging', {
       message: 'a socket disconnected'
     });
@@ -229,7 +234,18 @@ io.sockets.on('connection', (socket) => {
   });
 });
 
+const forfeitGame = (socketId) => {
+  let game = getGame(socketId);
+  if (game != null) {
+    let player = game.getPlayer(socketId);
+    let opponent = game.getOpponent(player);
+    game.forfeit(player);
+    handleFinishedGame(game, player, opponent);
+  }
+};
+
 const sendUserList = () => {
+  console.log(loggedInUsers);
   io.sockets.emit('user list update', {
     users: loggedInUsers
   });
@@ -245,12 +261,16 @@ const getUserById = (id) => {
   return null;
 };
 
-const logoutPlayer = (id) => {
+const logoutPlayer = (socketId) => {
   for (let i = 0; i < loggedInUsers.length; i++) {
     user = loggedInUsers[i];
-    if (user.socketId == id) {
-      deleteGame(id);
-      let index = loggedInUsers.indexOf(user);
+
+    if (user.socketId == socketId) {
+      console.log(user.socketId, socketId);
+      forfeitGame(socketId);
+      deleteGame(socketId);
+      let index = getLoggedInUserIndex(user.userId);
+      console.log(index);
       loggedInUsers.splice(index, 1);
       sendUserList();
       break;
@@ -269,7 +289,9 @@ const emitToPlayers = (players, event, data) => {
 };
 
 const getRandomWord = () => {
-  return global.words[Math.floor(Math.random() * global.words.length)];
+  let word = global.words[Math.floor(Math.random() * global.words.length)];
+  console.log(`the word is: ${word}`);
+  return word;
 };
 
 const deleteGame = (socketId) => {
@@ -277,8 +299,10 @@ const deleteGame = (socketId) => {
   for (let i = 0; i < games.length; i++) {
     let game = games[i];
     if (game.hasPlayer(socketId)) {
-      loggedInUsers[game.getPlayerOne().userId - 1].inGame = false;
-      loggedInUsers[game.getPlayerOne().userId - 1].inGame = false;
+      // loggedInUsers[getLoggedInUserIndex(game.getPlayerOne().userId)].inGame = false;
+      // loggedInUsers[getLoggedInUserIndex(game.getPlayerTwo().userId)].inGame = false;
+      updatePlayStatus(game.getPlayerOne(), false);
+      updatePlayStatus(game.getPlayerTwo(), false);
       index = i;
       break;
     }
@@ -303,8 +327,10 @@ const resetClient = () => {
 };
 
 const handleFinishedGame = (game, player, opponent) => {
-  loggedInUsers[player.userId - 1].inGame = false;
-  loggedInUsers[opponent.userId - 1].inGame = false;
+  // loggedInUsers[getLoggedInUserIndex(player.userId)].inGame = false;
+  // loggedInUsers[getLoggedInUserIndex(opponent.userId)].inGame = false;
+  updatePlayStatus(player, false);
+  updatePlayStatus(opponent, false);
   sendUserList();
 
   if (game.getEndState() == 'won') {
@@ -345,10 +371,16 @@ const handleFinishedGame = (game, player, opponent) => {
       message: `${player.username} forfeited thus ${opponent.username} wins!`
     });
   }
-  loggedInUsers[player.userId - 1].inGame = false;
-  loggedInUsers[opponent.userId - 1].inGame = false;
+  updatePlayStatus(player, false);
+  updatePlayStatus(opponent, false);
+  // loggedInUsers[getLoggedInUserIndex(player.userId)].inGame = false;
+  // loggedInUsers[getLoggedInUserIndex(player.userId)].inGame = false;
   sendUserList();
   deleteGame(player.socketId);
+};
+
+const updatePlayStatus = (player, state) => {
+  player.inGame = state;
 };
 
 const updateRanking = (player, state) => {
@@ -419,7 +451,7 @@ const loginSuccess = (token, user, socketId) => {
   //   inGame: user.inGame
   // };
   loggedInUsers.push(sessionObj);
-
+  // console.log(loggedInUsers);
   io.to(socketId).emit('logging', {
     message: `auth success - ${user.username} is logged in.`,
   });
@@ -433,4 +465,14 @@ const loginSuccess = (token, user, socketId) => {
   });
 
   sendUserList();
+}
+
+const getLoggedInUserIndex = (userId) => {
+  for (let i = 0; i < loggedInUsers.length; i++) {
+    if (loggedInUsers.userId === userId) {
+      return i;
+    }
+  }
+  return -1;
+  // return loggedInUsers.map((el) => el.userId).indexOf(userId);
 }
