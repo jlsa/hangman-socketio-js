@@ -2,8 +2,6 @@ const socket = io({transports: ['websocket'], upgrade: false});//.connect('http:
 let session = null;
 let loggedInUsers;
 
-let token = null;
-
 let playerOne;
 let playerTwo;
 let myTurn = false;
@@ -12,13 +10,19 @@ let finished = false;
 let won = false;
 
 socket.on('logging', (data) => {
-  $('#updates').append('<li>' + data.message + '</li>');
-  let log = document.getElementById('footer');
-  log.scrollTop = log.scrollHeight;
+  $('#updates').append('<li class="updates-item">' + data.message + '</li>');
+  // let log = document.getElementById('footer');
+  console.log(`SERVER: ${data.message}`);
+  // log.scrollTop = log.scrollHeight;
 });
 
 const init = () => {
+  $('#lobby-element').hide();
+  $('#game-element').hide();
+  $('#debug-element').hide();
+
   $('#endGameMessage').hide();
+  $('#endGameMessage').html('');
   $('#loggedIn').hide();
   $('#game').hide();
   $('#content').hide();
@@ -29,6 +33,10 @@ const init = () => {
 
 $(document).ready(() => {
   init();
+
+  $("#forfeit-button").on('click', (e) => {
+    socket.emit('forfeit');
+  });
   $("#logout").on('click', (e) => {
     socket.emit('logout', {
       session: session
@@ -103,15 +111,38 @@ $(document).ready(() => {
         let user = data.users[i];
 
         if (session.userId === user.userId) {
-          $userList.append(`<li>${user.username}(${user.ranking})</li>`);
+          // $userList.append(`<li>${user.username}(${user.ranking})</li>`);
+          $userList.append(`
+            <li class="collection-item avatar">
+              <img src="https://api.adorable.io/avatars/face/eyes7/nose4/mouth9/ff6600" alt="" class="circle">
+              <span class="title">@${user.username}</span>
+              <p class="teal-text">Ranking: ${user.ranking}</p>
+            </li>
+          `);
         } else {
           if (user.inGame) {
-            $userList.append(`<li>${user.username}(${user.ranking})</li>`);
+            // $userList.append(`<li>${user.username}(${user.ranking})</li>`);
+            $userList.append(`
+              <li class="collection-item avatar">
+                <img src="https://api.adorable.io/avatars/face/eyes7/nose4/mouth9/ff6600" alt="" class="circle">
+                <span class="title">@${user.username}</span>
+                <p class="teal-text">Ranking: ${user.ranking}</p>
+              </li>
+            `);
           } else {
-            $userList.append(`<li>${user.username}(${user.ranking})
-              <button class="btn btn-warning btn-xs challengeUserBtn"
-                onclick="challengeUser(${user.userId})">Challenge</button>
-            </li>`);
+            // $userList.append(`<li>${user.username}(${user.ranking})
+            //   <button class="btn btn-warning btn-xs challengeUserBtn"
+            //     onclick="challengeUser(${user.userId})">Challenge</button>
+            // </li>`);
+            $userList.append(`
+              <li class="collection-item avatar">
+                <img src="https://api.adorable.io/avatars/face/eyes7/nose4/mouth9/ff6600" alt="" class="circle">
+                <span class="title">@${user.username}</span>
+                <p class="teal-text">Ranking: ${user.ranking}</p>
+                <a href="#!" onclick="challengeUser(${user.userId})"
+                  class="secondary-content"><i class="material-icons">play_circle_outline</i></a>
+              </li>
+            `);
           }
         }
       }
@@ -124,10 +155,15 @@ $(document).ready(() => {
   });
 
   socket.on('auth success', (data) => {
+    $('#login-element').hide();
+    $('#lobby-element').show();
     // console.log(data);
-    $('#login-form').hide();
-    $('#loggedIn').show();
-    $('#users-list').show();
+    $('#profile-picture').attr('src', 'https://api.adorable.io/avatars/face/eyes7/nose4/mouth9/ff6600');//data.session.picture_url);
+    $('#profile-username').text(`@${data.session.username}`);
+    $('#profile-description').text('Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis non enim vel libero ultrices hendrerit at sed risus. In ac enim dolor. Curabitur id justo sed urna elementum mollis vitae ut felis.');
+    // $('#login-form').hide();
+    // $('#loggedIn').show();
+    // $('#users-list').show();
     session = data.session;
   });
 
@@ -136,15 +172,19 @@ $(document).ready(() => {
   });
 
   socket.on('logout success', (data) => {
-    $('#loggedIn').hide();
-    $('#login-form').show();
-    $('#users-list').hide();
-    $('#content').hide();
+    $('#login-element').show();
+    // $('#logout-element').hide();
+    $('#lobby-element').hide();
+    $('#game-element').hide();
+
+    // $('#loggedIn').hide();
+    // $('#login-form').show();
+    // // $('#users-list').hide();
+    // $('#content').hide();
   });
 
   socket.on('game start', (data) => {
     gameStart(data);
-
   });
 
   socket.on('game stop', (data) => {
@@ -163,6 +203,7 @@ $(document).ready(() => {
 });
 
 const gameStop = (data) => {
+  $('#game-element').hide();
   let winner = data.winner;
   let loser = data.loser;
   session.inGame = false;
@@ -188,6 +229,8 @@ const gameStop = (data) => {
 
 const gameStart = (data) => {
   gameState = data.gameState;
+  $('#game-element').show();
+
   $('.challengeUserBtn').hide();
   $('#game').show();
   $('#content').show();
@@ -274,7 +317,7 @@ const guessTheWord = () => {
     });
   }
 }
-
-const forfeit = () => {
-  socket.emit('forfeit');
-};
+//
+// const forfeit = () => {
+//   socket.emit('forfeit');
+// };
