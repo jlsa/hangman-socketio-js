@@ -56,24 +56,30 @@ const init = () => {
   // $('#loggedIn').hide();
   // $('#game').hide();
   // $('#content').hide();
-  $('form').submit((event) => {
-    event.preventDefault();
-  });
+  $( 'form' ).on('submit', (e) => {
+    e.preventDefault();
+  })
+  // $('form').submit((event) => {
+  //   event.preventDefault();
+  // });
 };
 
-$(document).ready(() => {
+$( document ).ready(() => {
+  $( window ).on('resize', () => {
+    console.log($( window ).width());
+  })
   init();
 
-  $("#forfeit-button").on('click', (e) => {
+  $( "#forfeit-button" ).on('click', (e) => {
     socket.emit('forfeit');
   });
-  $("#logout").on('click', (e) => {
+  $( "#logout" ).on('click', (e) => {
     socket.emit('logout', {
       session: session
     });
   });
 
-  $('#login-form').submit((event) => {
+  $( '#login-form' ).submit((event) => {
     event.preventDefault();
     let $inputs = $('#login-form :input');
 
@@ -358,7 +364,7 @@ const updateGameState = (gameState) => {
       let $target = $(e.target);
       socket.emit('check letter', {
         player: session,
-        letter: $target.val()
+        letter: $target.text()//$target.val()
       });
       myTurn = false;
     }
@@ -366,42 +372,41 @@ const updateGameState = (gameState) => {
 };
 
 const renderButtons = (alphabet) => {
-  $alphabetButtons = $('#alphabet-buttons');
-  $alphabetButtons.html('');
-
-  let indeces = [];
-  let temp = [];
-  for (let i = 0; i < alphabet.length; i++) {
-    console.log(i % 5);
-    temp.push(i);
-    if (i % 5 == 1) {
-      if (i > 0) {
-        indeces.push(temp);
-        temp = [];
-      }
+  // $alphabetButtons = $('#alphabet-buttons');
+  // $alphabetButtons.html('');
+  let keyboard = [
+    ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
+    ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
+    ['Z', 'X', 'C', 'V', 'B', 'N', 'M']
+  ];
+  $buttons = $('#alphabet-buttons');
+  $buttons.html('');
+  for (let i = 0; i < keyboard.length; i++) {
+    for (let j = 0; j < keyboard[i].length; j++) {
+      $buttons.append(`<button class="btn alphabet-button" value="${keyboard[i][j]}">${keyboard[i][j]}</button>`);
     }
+    $buttons.append('<br />')
   }
-  console.log(indeces);
 
-  for (let i = 0; i < alphabet.length; i++) {
-    let btnStr = `<button class="btn btn-primary btn-xs alphabet-button" value="${alphabet[i]}">${alphabet[i]}</button>`;
-    let btnAppendStr = `${btnStr}`;
-
-    if (i % 5 == 0) {
-      // console.log(alphabet[i]);
-      indeces.push(alphabet[i]);
-      // if (i == 0) {
-      //   btnAppendStr = `<div>${btnStr}`
-      // } else {
-      //   btnAppendStr = `</div>${btnStr}`;
-      //   if (i < (alphabet.length - 1)) {
-      //     btnAppendStr += `<div>`;
-      //   }
-      // }
-      // btnAppendStr = `</div>${btnStr}<div>`;
-    }
-    $alphabetButtons.append(btnAppendStr);
-  }
+  // for (let i = 0; i < alphabet.length; i++) {
+  //   let btnStr = `<button class="btn btn-primary btn-xs alphabet-button" value="${alphabet[i]}">${alphabet[i]}</button>`;
+  //   let btnAppendStr = `${btnStr}`;
+  //
+  //   if (i % 5 == 0) {
+  //     // console.log(alphabet[i]);
+  //     indeces.push(alphabet[i]);
+  //     // if (i == 0) {
+  //     //   btnAppendStr = `<div>${btnStr}`
+  //     // } else {
+  //     //   btnAppendStr = `</div>${btnStr}`;
+  //     //   if (i < (alphabet.length - 1)) {
+  //     //     btnAppendStr += `<div>`;
+  //     //   }
+  //     // }
+  //     // btnAppendStr = `</div>${btnStr}<div>`;
+  //   }
+  //   $alphabetButtons.append(btnAppendStr);
+  // }
 }
 
 const challengeUser = (id) => {
