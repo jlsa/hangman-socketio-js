@@ -56,59 +56,106 @@
       <div id="lobby-element">
         <div class="row">
           <!-- <div class="col s12 m8 offset-m2 l6 offset-l3"> -->
-          <div class="col s4 m4 l3">
-            <!-- <div class="row"> -->
-            <div class="card grey lighten-5">
-              <div class="card-image waves-effect waves-block waves-light">
-                <img src="" class="activator" id="profile-picture" alt="">
-              </div>
-              <div class="card-content black-text">
-                <span class="activator card-title"><span id="profile-username">@user</span> <i class="material-icons right">more_vert</i></span>
-                <span class="grey-text" id="profile-ranking">Ranking: 10</span>
-              </div>
+          <div class="col s4 m4 l3"> <!-- left -->
+            <div class="row">
+              <div class="col s12 m12 l12">
+                <div class="card grey lighten-5">
+                  <div class="card-image waves-effect waves-block waves-light">
+                    <img src="" class="activator" id="profile-picture" alt="">
+                  </div>
+                  <div class="card-content black-text">
+                    <span class="activator card-title"><span id="profile-username">@user</span> <i class="material-icons right">more_vert</i></span>
+                    <span class="grey-text" id="profile-ranking">Ranking: 10</span>
+                  </div>
 
-              <div class="card-action">
-                <a href="#" id="logout"><i class="material-icons left">exit_to_app</i>Logout</a>
+                  <div class="card-action">
+                    <a href="#" id="logout"><i class="material-icons left">exit_to_app</i>Logout</a>
+                  </div>
+                  <div class="card-reveal">
+                    <span class="card-title grey-text text-darken-4">Description<i class="material-icons right">close</i></span>
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris lobortis, diam ultricies tincidunt sodales, ligula justo tincidunt arcu, sit amet efficitur ex ipsum eu metus. Nullam porta odio id diam porta luctus.
+                  </div>
+                </div>
               </div>
-              <div class="card-reveal">
-                <span class="card-title grey-text text-darken-4">Description<i class="material-icons right">close</i></span>
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris lobortis, diam ultricies tincidunt sodales, ligula justo tincidunt arcu, sit amet efficitur ex ipsum eu metus. Nullam porta odio id diam porta luctus.
+            </div>
+            <div class="row">
+              <div class="col s12 m12 l12">
+                <div class="card grey lighten-5">
+                  <div class="card-content black-text">
+                    <span class="card-title">Online players</span>
+                    <ul id="users-list" class="collection"></ul>
+                  </div>
+                </div>
               </div>
-              <!-- </div> -->
             </div>
           </div>
-          <div class="col s8 m8 l9" id="game-element">
-            <div class="card teal darken-1">
-              <div class="card-content white-text">
+
+          <div class="col s8 m8 l9"> <!-- Right -->
+            <div class="row" id="alert-box"></div>
+            <div class="row">
+              <!-- <div class="col s8 m8 l9" id="end-game-element"> -->
+              <div class="col s12 m12 l12" id="end-game-element">
                 <div class="row">
-                  <div class="col s8 m8 l10">
-                    <div id="message-box" class="card deep-orange">
-                      <div class="card-content black-text">
-                        <span class="card-title">Info:</span>
-                        <p>It's your turn!</p>
+                  <div class="card grey lighten-5">
+                    <div class="">
+                      WINNER
+                    </div>
+                    <div>
+                      LOSER(S)
+                    </div>
+                    <div>attempts:</div>
+                    <div>word:</div>
+                    <div>used letters:</div>
+                    <div>correct letters:</div>
+                    <div>incorrect letters:</div>
+                    <div>played letters:</div>
+                    <div>end game state</div>
+
+                    <div>
+                      word is <span class="wordIsGuessed"></span> *if [guessed]* [by [player name] in [attempts]]
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+              <!-- <div class="col s8 m8 l9" id="game-element"> -->
+              <div class="col s12 m12 l12" id="game-element">
+                <div class="row">
+                  <div class="card teal darken-1">
+                    <div class="card-content white-text">
+                      <div class="row">
+                        <div class="col">
+                          <span class="showPlayerName"></span>
+                          <button class="btn" id="forfeit-button">Forfeit</button>
+                        </div>
                       </div>
+
+                      <div class="row" id="game">
+                        <div class="input-field col s12">
+                          <input type="text" value="" id="i-know-the-word" data-length="0" />
+                          <label for="i-know-the-word">Your guess!</label>
+                        </div>
+                        <button class="btn" onclick="guessTheWord()">I know the word!</button>
+                        <ul id="playersInGame"></ul>
+                      </div>
+                      <div class="row" id="alphabet-buttons"></div>
+                      <div class="row" id="content" style="background-color: #ff6600;">
+                        <div id="word"></div>
+                        <div class="col-md-4">
+                          <div>
+                            <span id="turnIndicator">Your turn | Oppenents turn</span>
+                          </div>
+                          <div class="row" id="usedLetters"></div>
+                          <div class="row" id="guesses"></div>
+                        </div>
+                        <div class="col-md-4">
+                          <img width="100" id="guessesImage" src="resources/bars-0.jpg" />
+                        </div>
+                      </div>
+
                     </div>
                   </div>
-                  <div class="col s4 m4 l2">
-                    <span class="showPlayerName"></span>
-                    <button class="btn" id="forfeit-button">Forfeit</button>
-                  </div>
                 </div>
-                <div class="row" id="game">
-                  game itself!
-                  <ul id="playersInGame"></ul>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="row">
-          <div class="col s4 m4 l3">
-            <div class="card grey lighten-5">
-              <div class="card-content black-text">
-                <span class="card-title">Online players</span>
-                <ul id="users-list" class="collection"></ul>
               </div>
             </div>
           </div>

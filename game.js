@@ -23,6 +23,7 @@ class Game {
     this.wordIsGuessed = false;
     this.forfeited = false;
     this.forfeitedPlayer = null;
+    this.word = '';
   }
 
   addLetter(letter) {

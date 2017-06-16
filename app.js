@@ -19,8 +19,6 @@ app.get('/', (req, res) => {
   res.sendFile(__dirname + '/index.html');
 });
 
-
-
 const filename = './words.txt';
 const rl = readline.createInterface({
   input: fs.createReadStream(filename)
@@ -36,51 +34,6 @@ rl.on('line', (line) => {
 
 const games = [];
 const loggedInUsers = [];
-const users = [
-  {
-    userId: 1,
-    username: 'joel',
-    password: '',
-    ranking: 10,
-    inGame: false
-  }, {
-    userId: 2,
-    username: 'test',
-    password: '',
-    ranking: 5,
-    inGame: false
-  }, {
-    userId: 3,
-    username: 'test1',
-    password: '',
-    ranking: 2,
-    inGame: false
-  }, {
-    userId: 4,
-    username: 'test2',
-    password: '',
-    ranking: 4,
-    inGame: false
-  }, {
-    userId: 5,
-    username: 'test3',
-    password: '',
-    ranking: 2,
-    inGame: false
-  }, {
-    userId: 6,
-    username: 'test4',
-    password: '',
-    ranking: 2,
-    inGame: false
-  }, {
-    userId: 7,
-    username: 'test5',
-    password: '',
-    ranking: 1,
-    inGame: false
-  }
-];
 
 io.sockets.on('connection', (socket) => {
   console.log('a socket connected');
@@ -213,12 +166,16 @@ const getUserById = (id) => {
 const logoutPlayer = (socketId) => {
   for (let i = 0; i < loggedInUsers.length; i++) {
     user = loggedInUsers[i];
-
+    let username = user.username;
     if (user.socketId == socketId) {
       forfeitGame(socketId);
       deleteGame(socketId);
-      let index = getLoggedInUserIndex(user.userId);
-      loggedInUsers.splice(index, 1);
+
+      // let index = getLoggedInUserIndex(user.userId);
+      // loggedInUsers.splice(index, 1);
+      // let username = user.username;
+      console.log(`logout success - ${username}`);
+      loggedInUsers.splice(i, 1);
       sendUserList();
       break;
     }
@@ -272,17 +229,42 @@ const resetClient = () => {
 const handleFinishedGame = (game, player, opponent) => {
   updatePlayStatus(player, opponent, false);
 
-
   if (game.getEndState() == 'won') {
     updateRanking(getUserById(player.userId), 'win');
     updateRanking(getUserById(opponent.userId), 'loss');
     emitToPlayer(player.socketId, 'win', {
       winner: player,
-      loser: opponent
+      loser: opponent,
+      losers: [],
+      game: {
+        attempts: game.guessAttempts,
+        word: game.word,
+        endState: game.getEndState(),
+        playedLetters: game.playedLetters,
+        incorrectLetters: game.incorrectLetters,
+        correctLetters: game.correctLetters,
+        notUsedLetters: game.notUsedLetters,
+        wordIsGuessed: game.wordIsGuessed,
+        outputString: game.outputString,
+        forfeited: game.forfeited
+      }
     });
     emitToPlayer(opponent.socketId, 'lost', {
       winner: player,
-      loser: opponent
+      loser: opponent,
+      losers: [],
+      game: {
+        attempts: game.guessAttempts,
+        word: game.word,
+        endState: game.getEndState(),
+        playedLetters: game.playedLetters,
+        incorrectLetters: game.incorrectLetters,
+        correctLetters: game.correctLetters,
+        notUsedLetters: game.notUsedLetters,
+        wordIsGuessed: game.wordIsGuessed,
+        outputString: game.outputString,
+        forfeited: game.forfeited
+      }
     });
     emitToPlayers(game.getPlayers(), 'logging', {
       message: `${player.username} has won!`
@@ -292,7 +274,23 @@ const handleFinishedGame = (game, player, opponent) => {
   if (game.getEndState() == 'lost-both') {
     updateRanking(getUserById(player.userId), 'loss');
     updateRanking(getUserById(opponent.userId), 'loss');
-    emitToPlayers(game.getPlayers(), 'lost-both', {});
+    emitToPlayers(game.getPlayers(), 'lost-both', {
+      winner: null,
+      loser: null,
+      losers: [player, opponent],
+      game: {
+        attempts: game.guessAttempts,
+        word: game.word,
+        endState: game.getEndState(),
+        playedLetters: game.playedLetters,
+        incorrectLetters: game.incorrectLetters,
+        correctLetters: game.correctLetters,
+        notUsedLetters: game.notUsedLetters,
+        wordIsGuessed: game.wordIsGuessed,
+        outputString: game.outputString,
+        forfeited: game.forfeited
+      }
+    });
     emitToPlayers(game.getPlayers(), 'logging', {
       message: `${player.username} has won!`
     });
@@ -305,7 +303,20 @@ const handleFinishedGame = (game, player, opponent) => {
     emitToPlayers(game.getPlayers(), 'game stop', {
       reason: 'forfeit',
       winner: opponent,
-      loser: player
+      loser: player,
+      losers: [],
+      game: {
+        attempts: game.guessAttempts,
+        word: game.word,
+        endState: game.getEndState(),
+        playedLetters: game.playedLetters,
+        incorrectLetters: game.incorrectLetters,
+        correctLetters: game.correctLetters,
+        notUsedLetters: game.notUsedLetters,
+        wordIsGuessed: game.wordIsGuessed,
+        outputString: game.outputString,
+        forfeited: game.forfeited
+      }
     });
     emitToPlayers(game.getPlayers(), 'logging', {
       message: `${player.username} forfeited thus ${opponent.username} wins!`
@@ -382,7 +393,7 @@ const loginSuccess = (token, user, socketId) => {
     session: sessionObj
   });
 
-  console.log('auth success');
+  console.log(`auth success - ${sessionObj.username}`);
   io.sockets.emit('logging', {
     message: 'There are ' + loggedInUsers.length + ' users logged in'
   });

@@ -9,6 +9,35 @@ let gameState;
 let finished = false;
 let won = false;
 
+let alertCount = 0;
+
+const showAlert = (title, msg, duration = 1000) => {
+  let el = document.createElement('div');
+  el.innerHTML = `
+      <div class="card deep-orange">
+        <div class="card-content black-text">
+          <span class="card-title">${title}</span>
+          <p>${msg}</p>
+        </div>
+      </div>
+    </div>
+  `;
+  setTimeout(() => {
+    console.log(alertCount);
+    alertCount--;
+    console.log(alertCount);
+    if (alertCount <= 0) {
+      $('#alert-box').hide();
+    }
+    el.parentNode.removeChild(el);
+  }, duration);
+
+  alertCount++;
+  $('#alert-box').show();
+  document.getElementById('alert-box').appendChild(el);
+}
+
+
 socket.on('logging', (data) => {
   $('#updates').append('<li class="updates-item">' + data.message + '</li>');
   // let log = document.getElementById('footer');
@@ -19,13 +48,14 @@ socket.on('logging', (data) => {
 const init = () => {
   $('#lobby-element').hide();
   $('#game-element').hide();
-  $('#debug-element').hide();
-
-  $('#endGameMessage').hide();
-  $('#endGameMessage').html('');
-  $('#loggedIn').hide();
-  $('#game').hide();
-  $('#content').hide();
+  $('#end-game-element').hide();
+  $('#debug-element').show();
+  $('#alert-box').hide();
+  // $('#endGameMessage').hide();
+  // $('#endGameMessage').html('');
+  // $('#loggedIn').hide();
+  // $('#game').hide();
+  // $('#content').hide();
   $('form').submit((event) => {
     event.preventDefault();
   });
@@ -64,37 +94,56 @@ $(document).ready(() => {
 
   socket.on('win', (data) => {
     console.log('CONGRATS! YOU HAVE WON!');
-    $('#game').hide();
-    $('#content').hide();
-    $('#endGameMessage').show();
-    $('#endGameMessage').text('Congratulations, you have won!!');
+    $('#game-element').hide();
+    // $('#end-game-element').show();
+    updateEndGameElement(data);
+    // $('#game').hide();
+    // $('#content').hide();
+    showAlert('WIN', 'Congratulations, you have won!!', 5000);
+    // $('#endGameMessage').show();
+    // $('#endGameMessage').text('Congratulations, you have won!!');
     session.inGame = false;
   });
 
   socket.on('lost-both', (data) => {
     console.log('Oh you both lost!');
-    $('#game').hide();
-    $('#content').hide();
-    $('#endGameMessage').show();
-    $('#endGameMessage').text('Too bad, you both lost!');
+    $('#game-element').hide();
+    // $('#end-game-element').show();
+    updateEndGameElement(data);
+    // $('#game').hide();
+    // $('#content').hide();
+    showAlert('LOST', 'Too bad, you both lost!', 5000);
+    // $('#endGameMessage').show();
+    // $('#endGameMessage').text('Too bad, you both lost!');
     session.inGame = false;
   });
 
   socket.on('lost', (data) => {
     console.log('Too bad! Better luck next time.');
-    $('#game').hide();
-    $('#content').hide();
-    $('#endGameMessage').show();
-    $('#endGameMessage').text('Too bad, you have lost! Better luck next time.');
+    $('#game-element').hide();
+    // $('#end-game-element').show();
+    updateEndGameElement(data);
+
+    // $('#game').hide();
+    // $('#content').hide();
+    showAlert('LOST', 'Too bad, you have lost! Better luck next time.', 5000);
+    // $('#endGameMessage').show();
+    // $('#endGameMessage').text('Too bad, you have lost! Better luck next time.');
     session.inGame = false;
   });
 
   socket.on('forfeited', (data) => {
     console.log('Why did you give up?');
-    $('#game').hide();
-    $('#content').hide();
-    $('#endGameMessage').show();
-    $('#endGameMessage').text(`${session.username} why did you give up? Now you've lost! :(`);
+    $('#game-element').hide();
+    // $('#end-game-element').show();
+    updateEndGameElement(data);
+
+    // $('#game').hide();
+    // $('#content').hide();
+
+    showAlert('FORFEITED', `${session.username} why did you give up? Now you've lost! :(`, 5000);
+    // $('#endGameMessage').show();
+    // $('#endGameMessage').text(`${session.username} why did you give up? Now you've lost! :(`);
     session.inGame = false;
   });
 
@@ -176,6 +225,7 @@ $(document).ready(() => {
     // $('#logout-element').hide();
     $('#lobby-element').hide();
     $('#game-element').hide();
+    $('#end-game-element').hide();
 
     // $('#loggedIn').hide();
     // $('#login-form').show();
@@ -202,8 +252,33 @@ $(document).ready(() => {
   });
 });
 
+const updateEndGameElement = (data) => {
+  $('#end-game-element').show();
+  let winner = data.winner;
+  let loser = data.loser;
+  let losers = data.losers;
+  let game = data.game;
+  session.inGame = false;
+
+
+  let attempts = data.game.attempts;
+  let word = data.game.word;
+  let endState = data.game.endState;
+  let playedLetters = data.game.playedLetters;
+  let incorrectLetters = data.game.attempts;
+  let correctLetters = data.game.correctLetters;
+  let notUsedLetters = data.game.notUsedLetters;
+  let wordIsGuessed = data.game.wordIsGuessed;
+  let outputString = data.game.outputString;
+  let forfeited = data.game.forfeited;
+
+
+};
+
 const gameStop = (data) => {
   $('#game-element').hide();
+  updateEndGameElement(data);
+
   let winner = data.winner;
   let loser = data.loser;
   session.inGame = false;
@@ -213,16 +288,18 @@ const gameStop = (data) => {
   $('#endGameMessage').show();
   if (winner.userId === session.userId) {
     if (data.reason == 'forfeit') {
-      $('#endGameMessage').text(`${winner.username} has won because your opponent ${loser.username} has forfeited the game.`);
+      showAlert('FORFEITED', `<strong>@${winner.username}</strong> has won because your opponent <strong>@${loser.username}</strong> has forfeited the game.`, 5000);
+      // $('#endGameMessage').text(`${winner.username} has won because your opponent ${loser.username} has forfeited the game.`);
     } else {
-      $('#endGameMessage').text(`.. game has stopped ..`);
+      // $('#endGameMessage').text(`.. game has stopped ..`);
     }
   }
   if (loser.userId === session.userId) {
     if (data.reason == 'forfeit') {
-      $('#endGameMessage').text(`${winner.username} has won because you forfeited the game.`);
+      showAlert('FORFEITED', `<strong>@${winner.username}</strong> has won because you forfeited the game.`, 5000);
+      // $('#endGameMessage').text(`${winner.username} has won because you forfeited the game.`);
     } else {
-      $('#endGameMessage').text(`.. game has stopped ..`);
+      // $('#endGameMessage').text(`.. game has stopped ..`);
     }
   }
 };
@@ -230,6 +307,9 @@ const gameStop = (data) => {
 const gameStart = (data) => {
   gameState = data.gameState;
   $('#game-element').show();
+  $('#end-game-element').hide();
+  $('input#i-know-the-word').data('length', data.gameState.letters.length);
+  $('input#i-know-the-word').characterCounter();
 
   $('.challengeUserBtn').hide();
   $('#game').show();
@@ -263,7 +343,7 @@ const updateGameState = (gameState) => {
   let word = gameState.word;
   let outputString = gameState.outputString;
   renderButtons(gameState.notUsedLetters);
-
+  console.log(`the word is: ${word}`);
   $('#guesses').text(guessAttempts);
   $('#guessesImage').attr('src', `resources/bars-${guessAttempts}.jpg`)
 
@@ -288,8 +368,39 @@ const updateGameState = (gameState) => {
 const renderButtons = (alphabet) => {
   $alphabetButtons = $('#alphabet-buttons');
   $alphabetButtons.html('');
+
+  let indeces = [];
+  let temp = [];
   for (let i = 0; i < alphabet.length; i++) {
-    $alphabetButtons.append(`<button class="btn btn-primary btn-xs alphabet-button" value="${alphabet[i]}">${alphabet[i]}</button>`);
+    console.log(i % 5);
+    temp.push(i);
+    if (i % 5 == 1) {
+      if (i > 0) {
+        indeces.push(temp);
+        temp = [];
+      }
+    }
+  }
+  console.log(indeces);
+
+  for (let i = 0; i < alphabet.length; i++) {
+    let btnStr = `<button class="btn btn-primary btn-xs alphabet-button" value="${alphabet[i]}">${alphabet[i]}</button>`;
+    let btnAppendStr = `${btnStr}`;
+
+    if (i % 5 == 0) {
+      // console.log(alphabet[i]);
+      indeces.push(alphabet[i]);
+      // if (i == 0) {
+      //   btnAppendStr = `<div>${btnStr}`
+      // } else {
+      //   btnAppendStr = `</div>${btnStr}`;
+      //   if (i < (alphabet.length - 1)) {
+      //     btnAppendStr += `<div>`;
+      //   }
+      // }
+      // btnAppendStr = `</div>${btnStr}<div>`;
+    }
+    $alphabetButtons.append(btnAppendStr);
   }
 }
 
@@ -309,6 +420,7 @@ const handleTurnMessage = () => {
 }
 
 const guessTheWord = () => {
+  console.log('guessing the word');
   if (myTurn) {
     let theWord = $('#i-know-the-word').val();
     // console.log(`Lets see if it is '${theWord}'.`);
@@ -317,7 +429,3 @@ const guessTheWord = () => {
     });
   }
 }
-//
-// const forfeit = () => {
-//   socket.emit('forfeit');
-// };
