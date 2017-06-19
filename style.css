@@ -23,6 +23,8 @@ form {
 	list-style: none;
 }
 
-/*.alphabet-button {
+.alphabet-button {
   margin: 0.5em;
-}*/
+  width: 5em;
+  text-align: center;
+}

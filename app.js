@@ -377,12 +377,15 @@ const authenticate = (username, password, socketId) => {
 }
 
 const loginSuccess = (token, user, socketId) => {
+  console.log(user);
   let sessionObj = {
     userId: user.id,
     username: user.username,
     ranking: 10,
     inGame: false,
-    socketId: socketId
+    socketId: socketId,
+    description: user.description,
+    picture_url: user.picture_url
   }
 
   loggedInUsers.push(sessionObj);

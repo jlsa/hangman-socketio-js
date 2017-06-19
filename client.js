@@ -11,33 +11,6 @@ let won = false;
 
 let alertCount = 0;
 
-const showAlert = (title, msg, duration = 1000) => {
-  let el = document.createElement('div');
-  el.innerHTML = `
-      <div class="card deep-orange">
-        <div class="card-content black-text">
-          <span class="card-title">${title}</span>
-          <p>${msg}</p>
-        </div>
-      </div>
-    </div>
-  `;
-  setTimeout(() => {
-    console.log(alertCount);
-    alertCount--;
-    console.log(alertCount);
-    if (alertCount <= 0) {
-      $('#alert-box').hide();
-    }
-    el.parentNode.removeChild(el);
-  }, duration);
-
-  alertCount++;
-  $('#alert-box').show();
-  document.getElementById('alert-box').appendChild(el);
-}
-
-
 socket.on('logging', (data) => {
   $('#updates').append('<li class="updates-item">' + data.message + '</li>');
   // let log = document.getElementById('footer');
@@ -45,41 +18,23 @@ socket.on('logging', (data) => {
   // log.scrollTop = log.scrollHeight;
 });
 
-const init = () => {
-  $('#lobby-element').hide();
-  $('#game-element').hide();
-  $('#end-game-element').hide();
-  $('#debug-element').show();
-  $('#alert-box').hide();
-  // $('#endGameMessage').hide();
-  // $('#endGameMessage').html('');
-  // $('#loggedIn').hide();
-  // $('#game').hide();
-  // $('#content').hide();
-  $( 'form' ).on('submit', (e) => {
-    e.preventDefault();
-  })
-  // $('form').submit((event) => {
-  //   event.preventDefault();
-  // });
-};
 
-$( document ).ready(() => {
-  $( window ).on('resize', () => {
-    console.log($( window ).width());
-  })
+
+$(document).ready(() => {
   init();
 
-  $( "#forfeit-button" ).on('click', (e) => {
+  $("#forfeit-button").on('click', (e) => {
     socket.emit('forfeit');
   });
-  $( "#logout" ).on('click', (e) => {
+
+  $("#logout").on('click', (e) => {
     socket.emit('logout', {
       session: session
     });
+    session = null;
   });
 
-  $( '#login-form' ).submit((event) => {
+  $('#login-form').submit((event) => {
     event.preventDefault();
     let $inputs = $('#login-form :input');
 
@@ -99,57 +54,26 @@ $( document ).ready(() => {
   });
 
   socket.on('win', (data) => {
-    console.log('CONGRATS! YOU HAVE WON!');
-    $('#game-element').hide();
-    // $('#end-game-element').show();
     updateEndGameElement(data);
-    // $('#game').hide();
-    // $('#content').hide();
     showAlert('WIN', 'Congratulations, you have won!!', 5000);
-    // $('#endGameMessage').show();
-    // $('#endGameMessage').text('Congratulations, you have won!!');
     session.inGame = false;
   });
 
   socket.on('lost-both', (data) => {
-    console.log('Oh you both lost!');
-    $('#game-element').hide();
-    // $('#end-game-element').show();
     updateEndGameElement(data);
-    // $('#game').hide();
-    // $('#content').hide();
     showAlert('LOST', 'Too bad, you both lost!', 5000);
-    // $('#endGameMessage').show();
-    // $('#endGameMessage').text('Too bad, you both lost!');
     session.inGame = false;
   });
 
   socket.on('lost', (data) => {
-    console.log('Too bad! Better luck next time.');
-    $('#game-element').hide();
-    // $('#end-game-element').show();
     updateEndGameElement(data);
-
-    // $('#game').hide();
-    // $('#content').hide();
     showAlert('LOST', 'Too bad, you have lost! Better luck next time.', 5000);
-    // $('#endGameMessage').show();
-    // $('#endGameMessage').text('Too bad, you have lost! Better luck next time.');
     session.inGame = false;
   });
 
   socket.on('forfeited', (data) => {
-    console.log('Why did you give up?');
-    $('#game-element').hide();
-    // $('#end-game-element').show();
     updateEndGameElement(data);
-
-    // $('#game').hide();
-    // $('#content').hide();
-
     showAlert('FORFEITED', `${session.username} why did you give up? Now you've lost! :(`, 5000);
-    // $('#endGameMessage').show();
-    // $('#endGameMessage').text(`${session.username} why did you give up? Now you've lost! :(`);
     session.inGame = false;
   });
 
@@ -169,29 +93,24 @@ $( document ).ready(() => {
           // $userList.append(`<li>${user.username}(${user.ranking})</li>`);
           $userList.append(`
             <li class="collection-item avatar">
-              <img src="https://api.adorable.io/avatars/face/eyes7/nose4/mouth9/ff6600" alt="" class="circle">
+              <img src="${user.picture_url}" alt="" class="circle">
               <span class="title">@${user.username}</span>
               <p class="teal-text">Ranking: ${user.ranking}</p>
             </li>
           `);
         } else {
           if (user.inGame) {
-            // $userList.append(`<li>${user.username}(${user.ranking})</li>`);
             $userList.append(`
               <li class="collection-item avatar">
-                <img src="https://api.adorable.io/avatars/face/eyes7/nose4/mouth9/ff6600" alt="" class="circle">
+                <img src="${user.picture_url}" alt="" class="circle">
                 <span class="title">@${user.username}</span>
                 <p class="teal-text">Ranking: ${user.ranking}</p>
               </li>
             `);
           } else {
-            // $userList.append(`<li>${user.username}(${user.ranking})
-            //   <button class="btn btn-warning btn-xs challengeUserBtn"
-            //     onclick="challengeUser(${user.userId})">Challenge</button>
-            // </li>`);
             $userList.append(`
               <li class="collection-item avatar">
-                <img src="https://api.adorable.io/avatars/face/eyes7/nose4/mouth9/ff6600" alt="" class="circle">
+                <img src="${user.picture_url}" alt="" class="circle">
                 <span class="title">@${user.username}</span>
                 <p class="teal-text">Ranking: ${user.ranking}</p>
                 <a href="#!" onclick="challengeUser(${user.userId})"
@@ -213,12 +132,9 @@ $( document ).ready(() => {
     $('#login-element').hide();
     $('#lobby-element').show();
     // console.log(data);
-    $('#profile-picture').attr('src', 'https://api.adorable.io/avatars/face/eyes7/nose4/mouth9/ff6600');//data.session.picture_url);
+    $('#profile-picture').attr('src', data.session.picture_url);
     $('#profile-username').text(`@${data.session.username}`);
-    $('#profile-description').text('Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis non enim vel libero ultrices hendrerit at sed risus. In ac enim dolor. Curabitur id justo sed urna elementum mollis vitae ut felis.');
-    // $('#login-form').hide();
-    // $('#loggedIn').show();
-    // $('#users-list').show();
+    $('#profile-description').html(`<p>${data.session.description}</p>`);
     session = data.session;
   });
 
@@ -227,16 +143,8 @@ $( document ).ready(() => {
   });
 
   socket.on('logout success', (data) => {
-    $('#login-element').show();
-    // $('#logout-element').hide();
-    $('#lobby-element').hide();
-    $('#game-element').hide();
-    $('#end-game-element').hide();
-
-    // $('#loggedIn').hide();
-    // $('#login-form').show();
-    // // $('#users-list').hide();
-    // $('#content').hide();
+    logout();
+    session = null;
   });
 
   socket.on('game start', (data) => {
@@ -258,14 +166,60 @@ $( document ).ready(() => {
   });
 });
 
+const showAlert = (title, msg, duration = 1000) => {
+  let el = document.createElement('div');
+  el.innerHTML = `
+      <div class="card deep-orange">
+        <div class="card-content black-text">
+          <span class="card-title">${title}</span>
+          <p>${msg}</p>
+        </div>
+      </div>
+    </div>
+  `;
+  setTimeout(() => {
+    // console.log(alertCount);
+    alertCount--;
+    // console.log(alertCount);
+    if (alertCount <= 0) {
+      $('#alert-box').hide();
+    }
+    el.parentNode.removeChild(el);
+  }, duration);
+
+  alertCount++;
+  $('#alert-box').show();
+  document.getElementById('alert-box').appendChild(el);
+}
+
+const init = () => {
+  $('#lobby-element').hide();
+  $('#game-element').hide();
+  $('#end-game-element').hide();
+  $('#debug-element').hide();
+  $('#alert-box').hide();
+  $('#login-element').show();
+
+  $( 'form' ).on('submit', (e) => {
+    e.preventDefault();
+  });
+};
+
+const logout = () => {
+  init();
+  session = null;
+};
+
 const updateEndGameElement = (data) => {
+  $('#game-element').hide();
+  $('#lobby-element').show();
   $('#end-game-element').show();
+
   let winner = data.winner;
   let loser = data.loser;
   let losers = data.losers;
   let game = data.game;
   session.inGame = false;
-
 
   let attempts = data.game.attempts;
   let word = data.game.word;
@@ -277,12 +231,9 @@ const updateEndGameElement = (data) => {
   let wordIsGuessed = data.game.wordIsGuessed;
   let outputString = data.game.outputString;
   let forfeited = data.game.forfeited;
-
-
 };
 
 const gameStop = (data) => {
-  $('#game-element').hide();
   updateEndGameElement(data);
 
   let winner = data.winner;
@@ -313,14 +264,11 @@ const gameStop = (data) => {
 const gameStart = (data) => {
   gameState = data.gameState;
   $('#game-element').show();
+  $('#lobby-element').hide();
   $('#end-game-element').hide();
-  $('input#i-know-the-word').data('length', data.gameState.letters.length);
-  $('input#i-know-the-word').characterCounter();
 
   $('.challengeUserBtn').hide();
-  $('#game').show();
-  $('#content').show();
-  $('#endGameMessage').hide();
+
   $('.showPlayerName').text(session.username);
   session.inGame = true;
 
@@ -372,41 +320,14 @@ const updateGameState = (gameState) => {
 };
 
 const renderButtons = (alphabet) => {
-  // $alphabetButtons = $('#alphabet-buttons');
-  // $alphabetButtons.html('');
-  let keyboard = [
-    ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
-    ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
-    ['Z', 'X', 'C', 'V', 'B', 'N', 'M']
-  ];
-  $buttons = $('#alphabet-buttons');
-  $buttons.html('');
-  for (let i = 0; i < keyboard.length; i++) {
-    for (let j = 0; j < keyboard[i].length; j++) {
-      $buttons.append(`<button class="btn alphabet-button" value="${keyboard[i][j]}">${keyboard[i][j]}</button>`);
-    }
-    $buttons.append('<br />')
-  }
+  $alphabetButtons = $('#alphabet-buttons');
+  $alphabetButtons.html('');
 
-  // for (let i = 0; i < alphabet.length; i++) {
-  //   let btnStr = `<button class="btn btn-primary btn-xs alphabet-button" value="${alphabet[i]}">${alphabet[i]}</button>`;
-  //   let btnAppendStr = `${btnStr}`;
-  //
-  //   if (i % 5 == 0) {
-  //     // console.log(alphabet[i]);
-  //     indeces.push(alphabet[i]);
-  //     // if (i == 0) {
-  //     //   btnAppendStr = `<div>${btnStr}`
-  //     // } else {
-  //     //   btnAppendStr = `</div>${btnStr}`;
-  //     //   if (i < (alphabet.length - 1)) {
-  //     //     btnAppendStr += `<div>`;
-  //     //   }
-  //     // }
-  //     // btnAppendStr = `</div>${btnStr}<div>`;
-  //   }
-  //   $alphabetButtons.append(btnAppendStr);
-  // }
+  for (let i = 0; i < alphabet.length; i++) {
+    $alphabetButtons.append(`
+      <button class="btn btn-primary btn-xs alphabet-button"
+        value="${alphabet[i]}">${alphabet[i]}</button>`);
+  }
 }
 
 const challengeUser = (id) => {
@@ -418,9 +339,11 @@ const challengeUser = (id) => {
 
 const handleTurnMessage = () => {
   if (myTurn) {
-    $('#turnIndicator').text('Your turn!');
+    $('#game-input').show();
+    $('#game-opponents-turn').hide();
   } else {
-    $('#turnIndicator').text('Your opponent\'s turn.');
+    $('#game-input').hide();
+    $('#game-opponents-turn').show();
   }
 }
 

@@ -15,13 +15,13 @@
     <div class="container">
       <div id="login-element">
         <div class="row">
-          <div class="col s8 offset-s2 m6 offset-m3 center-align">
+          <div class="col s10 offset-s1 m8 offset-m2 l10 offset-l1  xl8 offset-xl2 center-align">
             <h1 class="teal-text">Guess The Word!</h1>
             <h3 class="orange-text">Do you dare?</h3>
           </div>
         </div>
         <div class="row">
-          <div class="col s8 offset-s2 m4 offset-m4 l6 offset-l3  xl4 offset-xl4 center-align">
+          <div class="col s8 offset-s2 m6 offset-m3 l6 offset-l3  xl4 offset-xl4 center-align">
             <form id="login-form">
               <div class="row">
                 <div class="row">
@@ -50,12 +50,12 @@
           </div>
         </div>
       </div>
+      <!-- start lobby element -->
       <div id="lobby-element">
         <div class="row">
-          <!-- <div class="col s12 m8 offset-m2 l6 offset-l3"> -->
-          <div class="col s4 m4 l3"> <!-- left -->
+          <div class="col s4 m4 l3 xl3"> <!-- left -->
             <div class="row">
-              <div class="col s12 m12 l12">
+              <div class="col s12 m12 l12 xl12">
                 <div class="card grey lighten-5">
                   <div class="card-image waves-effect waves-block waves-light">
                     <img src="" class="activator" id="profile-picture" alt="">
@@ -70,11 +70,55 @@
                   </div>
                   <div class="card-reveal">
                     <span class="card-title grey-text text-darken-4">Description<i class="material-icons right">close</i></span>
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris lobortis, diam ultricies tincidunt sodales, ligula justo tincidunt arcu, sit amet efficitur ex ipsum eu metus. Nullam porta odio id diam porta luctus.
+                    <div id="profile-description"></div>
                   </div>
                 </div>
               </div>
             </div>
+            <!-- <div class="row">
+              <div class="col s12 m12 l12">
+                <div class="card grey lighten-5">
+                  <div class="card-content black-text">
+                    <span class="card-title">Online players</span>
+                    <ul id="users-list" class="collection"></ul>
+                  </div>
+                </div>
+              </div>
+            </div> -->
+          </div>
+
+          <div class="col s8 m8 l9 xl9"> <!-- Right -->
+
+            <div class="row" id="alert-box"></div>
+
+            <div class="row" id="end-game-element">
+              <div class="col s12 m12 l12">
+                <div class="row">
+                  <div class="card teal">
+                    <div class="card-content black-text">
+                      <div class="">
+                        WINNER
+                      </div>
+                      <div>
+                        LOSER(S)
+                      </div>
+                      <div>attempts:</div>
+                      <div>word:</div>
+                      <div>used letters:</div>
+                      <div>correct letters:</div>
+                      <div>incorrect letters:</div>
+                      <div>played letters:</div>
+                      <div>end game state</div>
+
+                      <div>
+                        word is <span class="wordIsGuessed"></span> *if [guessed]* [by [player name] in [attempts]]
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div class="row">
               <div class="col s12 m12 l12">
                 <div class="card grey lighten-5">
@@ -86,70 +130,83 @@
               </div>
             </div>
           </div>
-
-          <div class="col s8 m8 l9"> <!-- Right -->
-            <div class="row" id="alert-box"></div>
-            <div class="row">
-              <!-- <div class="col s8 m8 l9" id="end-game-element"> -->
-              <div class="col s12 m12 l12" id="end-game-element">
+        </div>
+      </div>
+      <!-- ending lobby element -->
+      <!-- start game element -->
+      <div id="game-element">
+        <div class="row">
+          <div class="col s3 m3 l3 xl3">
+            <div class="card teal darken-1">
+              <div class="card-content white-text">
                 <div class="row">
-                  <div class="card grey lighten-5">
-                    <div class="">
-                      WINNER
-                    </div>
-                    <div>
-                      LOSER(S)
-                    </div>
-                    <div>attempts:</div>
-                    <div>word:</div>
-                    <div>used letters:</div>
-                    <div>correct letters:</div>
-                    <div>incorrect letters:</div>
-                    <div>played letters:</div>
-                    <div>end game state</div>
-
-                    <div>
-                      word is <span class="wordIsGuessed"></span> *if [guessed]* [by [player name] in [attempts]]
-                    </div>
-
+                  <div class="col">
+                    <button class="btn" id="forfeit-button">Forfeit</button>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col">
+                    <img class="responsive-img" id="guessesImage" src="resources/bars-0.jpg" />
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col">
+                    Player one: @joel<br>
+                    Player two: @test
                   </div>
                 </div>
               </div>
-              <!-- <div class="col s8 m8 l9" id="game-element"> -->
-              <div class="col s12 m12 l12" id="game-element">
+            </div>
+          </div>
+
+          <div class="col s9 m8 l9 xl9">
+            <div class="row">
+              <div class="card teal darken-1">
+                <div class="card-content white-text center-align">
+                  <h4 id="word">W _ I _ _ B A _ G S</h4><!-- WHIZZBANGS -->
+                </div>
+              </div>
+            </div>
+
+            <div class="row" id="game-opponents-turn">
+              <div class="col s12 m12 l12 xl12">
+                <div class="card teal darken-1">
+                  <div class="card-content white-text">
+                    <div class="row">
+                      <div class="col s12 m12 l12 xl12">
+                        It is your opponents turn!
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="row" id="game-input">
+              <div class="col">
                 <div class="row">
                   <div class="card teal darken-1">
                     <div class="card-content white-text">
                       <div class="row">
-                        <div class="col">
-                          <span class="showPlayerName"></span>
-                          <button class="btn" id="forfeit-button">Forfeit</button>
+                        <div class="input-field col s12 m12">
+                          <input type="text" value="" id="i-know-the-word" />
+                          <label for="i-know-the-word" class="orange-text">Your guess!</label>
+                        </div>
+                        <div class="col s12 m12 right-align">
+                          <button class="btn" onclick="guessTheWord()">I know!</button>
                         </div>
                       </div>
+                    </div>
+                  </div>
+                </div>
 
-                      <div class="row" id="game">
-                        <div class="input-field col s12">
-                          <input type="text" value="" id="i-know-the-word" data-length="0" />
-                          <label for="i-know-the-word">Your guess!</label>
-                        </div>
-                        <button class="btn" onclick="guessTheWord()">I know the word!</button>
-                        <ul id="playersInGame"></ul>
+                <div class="row">
+                  <div class="card teal darken-1">
+                    <div class="card-content white-text">
+                      <div class="row">
+                      <div class="col s12 m12 l12 xl12" id="alphabet-buttons">
                       </div>
-                      <div class="row" id="alphabet-buttons"></div>
-                      <div class="row" id="content" style="background-color: #ff6600;">
-                        <div id="word"></div>
-                        <div class="col-md-4">
-                          <div>
-                            <span id="turnIndicator">Your turn | Oppenents turn</span>
-                          </div>
-                          <div class="row" id="usedLetters"></div>
-                          <div class="row" id="guesses"></div>
-                        </div>
-                        <div class="col-md-4">
-                          <img width="100" id="guessesImage" src="resources/bars-0.jpg" />
-                        </div>
-                      </div>
-
+                    </div>
                     </div>
                   </div>
                 </div>
@@ -158,6 +215,8 @@
           </div>
         </div>
       </div>
+      <!-- end game element -->
+
 
       <div id="debug-element">
         <ul id="updates"></ul>
