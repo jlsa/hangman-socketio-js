@@ -280,26 +280,19 @@ const gameStop = (data) => {
   let winner = data.winner;
   let loser = data.loser;
   session.inGame = false;
+
   $('.challengeUserBtn').show();
-  // $('#game').hide();
-  // $('#content').hide();
-  // $('#endGameMessage').show();
   $('#game-element').hide();
   $('#i-know-the-word').attr('value', '');
+
   if (winner.userId === session.userId) {
     if (data.reason == 'forfeit') {
       showAlert('FORFEITED', `<strong>@${winner.username}</strong> has won because your opponent <strong>@${loser.username}</strong> has forfeited the game.`, 5000);
-      // $('#endGameMessage').text(`${winner.username} has won because your opponent ${loser.username} has forfeited the game.`);
-    } else {
-      // $('#endGameMessage').text(`.. game has stopped ..`);
     }
   }
   if (loser.userId === session.userId) {
     if (data.reason == 'forfeit') {
       showAlert('FORFEITED', `<strong>@${winner.username}</strong> has won because you forfeited the game.`, 5000);
-      // $('#endGameMessage').text(`${winner.username} has won because you forfeited the game.`);
-    } else {
-      // $('#endGameMessage').text(`.. game has stopped ..`);
     }
   }
 };
@@ -325,7 +318,6 @@ const gameStart = (data) => {
   playerTwo = data.gameState.playerTwo;
 
   if (playerOne.username === session.username) {
-    console.log(playerOne, session);
     myTurn = true;
   }
 
@@ -383,11 +375,6 @@ const challengeUser = (id) => {
 }
 
 const handleTurnMessage = () => {
-  console.log(`${myTurn} - ${session.username}`);
-
-  $('#game-input').hide();
-  $('#game-opponents-turn').show();
-
   if (myTurn) {
     $('#game-input').show();
     $('#game-opponents-turn').hide();
@@ -398,10 +385,8 @@ const handleTurnMessage = () => {
 }
 
 const guessTheWord = () => {
-  console.log('guessing the word');
   if (myTurn) {
     let theWord = $('#i-know-the-word').val();
-    // console.log(`Lets see if it is '${theWord}'.`);
     socket.emit('i know the word', {
       word: theWord
     });
