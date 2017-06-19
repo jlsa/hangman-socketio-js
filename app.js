@@ -292,7 +292,7 @@ const handleFinishedGame = (game, player, opponent) => {
       }
     });
     emitToPlayers(game.getPlayers(), 'logging', {
-      message: `${player.username} has won!`
+      message: `You both have lost..`
     });
   }
 
@@ -377,7 +377,7 @@ const authenticate = (username, password, socketId) => {
 }
 
 const loginSuccess = (token, user, socketId) => {
-  console.log(user);
+  // console.log(user);
   let sessionObj = {
     userId: user.id,
     username: user.username,

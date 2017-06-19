@@ -23,6 +23,10 @@ socket.on('logging', (data) => {
 $(document).ready(() => {
   init();
 
+  $('#close-end-game-element').on('click', (e) => {
+    $('#end-game-element').hide();
+  });
+
   $("#forfeit-button").on('click', (e) => {
     socket.emit('forfeit');
   });
@@ -231,6 +235,43 @@ const updateEndGameElement = (data) => {
   let wordIsGuessed = data.game.wordIsGuessed;
   let outputString = data.game.outputString;
   let forfeited = data.game.forfeited;
+
+  $winner = $('#end-game-winner');
+  $loser = $('#end-game-loser');
+  $losers = $('#end-game-losers');
+
+  if (winner != null) {
+    $winner.html(`<h2>Winner: @${winner.username}</h2>`)
+  } else {
+    $winner.html('');
+    $winner.hide();
+  }
+
+  if (loser != null) {
+    $loser.html(`<h2>Loser: @${loser.username}</h2>`)
+  } else {
+    $loser.html('');
+    $loser.hide();
+  }
+
+  if (losers.length > 0) {
+    $losers.html('<div class="row"><div class="col s12"><h3>Losers</h3></div></div>');
+    $losers.append('<div class="row">');
+    for (let i = 0; i < losers.length; i++) {
+      let colSize = Math.floor(12 / losers.length);
+      $losers.append(
+        `<div class="col s${colSize} m${colSize} l${colSize} xl${colSize}">
+          <h4>@${losers[i].username}</h4>
+        </div>`
+      );
+    }
+    $losers.append('</div>');
+  } else {
+    $losers.html('');
+    $losers.hide();
+  }
+
+
 };
 
 const gameStop = (data) => {
@@ -240,9 +281,11 @@ const gameStop = (data) => {
   let loser = data.loser;
   session.inGame = false;
   $('.challengeUserBtn').show();
-  $('#game').hide();
-  $('#content').hide();
-  $('#endGameMessage').show();
+  // $('#game').hide();
+  // $('#content').hide();
+  // $('#endGameMessage').show();
+  $('#game-element').hide();
+  $('#i-know-the-word').attr('value', '');
   if (winner.userId === session.userId) {
     if (data.reason == 'forfeit') {
       showAlert('FORFEITED', `<strong>@${winner.username}</strong> has won because your opponent <strong>@${loser.username}</strong> has forfeited the game.`, 5000);
@@ -262,6 +305,7 @@ const gameStop = (data) => {
 };
 
 const gameStart = (data) => {
+  myTurn = false;
   gameState = data.gameState;
   $('#game-element').show();
   $('#lobby-element').hide();
@@ -281,6 +325,7 @@ const gameStart = (data) => {
   playerTwo = data.gameState.playerTwo;
 
   if (playerOne.username === session.username) {
+    console.log(playerOne, session);
     myTurn = true;
   }
 
@@ -312,7 +357,7 @@ const updateGameState = (gameState) => {
       let $target = $(e.target);
       socket.emit('check letter', {
         player: session,
-        letter: $target.text()//$target.val()
+        letter: $target.text()
       });
       myTurn = false;
     }
@@ -338,6 +383,11 @@ const challengeUser = (id) => {
 }
 
 const handleTurnMessage = () => {
+  console.log(`${myTurn} - ${session.username}`);
+
+  $('#game-input').hide();
+  $('#game-opponents-turn').show();
+
   if (myTurn) {
     $('#game-input').show();
     $('#game-opponents-turn').hide();

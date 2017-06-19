@@ -75,16 +75,6 @@
                 </div>
               </div>
             </div>
-            <!-- <div class="row">
-              <div class="col s12 m12 l12">
-                <div class="card grey lighten-5">
-                  <div class="card-content black-text">
-                    <span class="card-title">Online players</span>
-                    <ul id="users-list" class="collection"></ul>
-                  </div>
-                </div>
-              </div>
-            </div> -->
           </div>
 
           <div class="col s8 m8 l9 xl9"> <!-- Right -->
@@ -96,19 +86,33 @@
                 <div class="row">
                   <div class="card teal">
                     <div class="card-content black-text">
-                      <div class="">
-                        WINNER
+                      <i class="material-icons right" id="close-end-game-element">close</i>
+                      <div class="row">
+                        <div id="end-game-winner">
+                          WINNER
+                        </div>
+                        <div id="end-game-loser">
+                          LOSER
+                        </div>
                       </div>
-                      <div>
-                        LOSER(S)
+                      <div class="row" id="end-game-losers">
+                        <div class="col s12 m12 l12 xl12">
+                          LOSER(S)
+                        </div>
                       </div>
-                      <div>attempts:</div>
-                      <div>word:</div>
-                      <div>used letters:</div>
-                      <div>correct letters:</div>
-                      <div>incorrect letters:</div>
-                      <div>played letters:</div>
-                      <div>end game state</div>
+
+                      <div class="row">
+                        <div class="col s12 m12 l12 xl12">
+                          <div>attempts:</div>
+                          <div>word:</div>
+                          <div>used letters:</div>
+                          <div>correct letters:</div>
+                          <div>incorrect letters:</div>
+                          <div>played letters:</div>
+                          <div>end game state</div>
+                        </div>
+                      </div>
+
 
                       <div>
                         word is <span class="wordIsGuessed"></span> *if [guessed]* [by [player name] in [attempts]]
