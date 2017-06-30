@@ -72,6 +72,9 @@ io.sockets.on('connection', (socket) => {
     let challenger = getUserById(data.challenger);
     let challenged = getUserById(data.challenged);
 
+    if (challenger == null || challenged == null) {
+      return;
+    }
     challenger.inGame = true;
     challenged.inGame = true;
     updatePlayStatus(challenger, challenged, true);
@@ -148,6 +151,7 @@ const forfeitGame = (socketId) => {
 };
 
 const sendUserList = () => {
+  // console.log(loggedInUsers)
   io.sockets.emit('user list update', {
     users: loggedInUsers
   });
@@ -333,13 +337,44 @@ const updatePlayStatus = (playerOne, playerTwo, state) => {
 };
 
 const updateRanking = (player, state) => {
+  // console.log(player)
+  let newRanking = player.ranking;
   if (state == 'win') {
-    player.ranking += 1;
+    newRanking += 1;
+    // player.ranking += 1;
+    // emitToPlayer(player.socketId, 'update ranking', {
+    //   'ranking': newRanking
+    // });
+    // console.log(player)
   }
 
   if (state == 'loss') {
-    player.ranking -= 1;
+    newRanking -= 1;
+    // player.ranking -= 1;
+    // console.log(player)
+
   }
+  if (newRanking <= 0) {
+    newRanking = 0;
+  }
+  player.ranking = newRanking;
+  emitToPlayer(player.socketId, 'update ranking', {
+    'ranking': newRanking
+  });
+
+  const request = axios({
+    method: 'post',
+    url: `http://localhost:5000/api/v1-0/user/update/${player.userId}`,
+    data: {
+      'ranking': newRanking
+    }
+  }).then((res) => {
+    // console.log(res.data.user)
+    // player.ranking = res.data.user.ranking
+  }).catch((err) => {
+    // console.log(err)
+    console.log(`error while updating ranking for player ${player.username}`)
+  })
 };
 
 const handleTurn = (player, opponent) => {
@@ -358,7 +393,7 @@ const handleTurn = (player, opponent) => {
 };
 
 const authenticate = (username, password, socketId) => {
-  const api = 'http://localhost:5000/api/v1-0/token';
+  const api = 'http://localhost:5000/api/v1-0/signin';
   const headers = {
     auth: {
       username: username,
@@ -377,15 +412,16 @@ const authenticate = (username, password, socketId) => {
 }
 
 const loginSuccess = (token, user, socketId) => {
-  // console.log(user);
+  // console.log(user, token, socketId);
   let sessionObj = {
     userId: user.id,
     username: user.username,
-    ranking: 10,
+    ranking: user.ranking,
     inGame: false,
     socketId: socketId,
     description: user.description,
-    picture_url: user.picture_url
+    picture_url: user.picture_url,
+    token: token
   }
 
   loggedInUsers.push(sessionObj);

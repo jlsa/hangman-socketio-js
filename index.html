@@ -88,35 +88,51 @@
                     <div class="card-content black-text">
                       <i class="material-icons right" id="close-end-game-element">close</i>
                       <div class="row">
-                        <div id="end-game-winner">
-                          WINNER
-                        </div>
-                        <div id="end-game-loser">
-                          LOSER
+                        <div class="col s12 m12 l12 xl12">
+                          <span style="font-size: 1em; position: absolute; top: 55px;" class="orange-text flow-text">THE WORD:</span>
+                          <h2 id="end-word" class="flow-text">ARCHITECTURE</h2>
                         </div>
                       </div>
-                      <div class="row" id="end-game-losers">
+                      <div class="row">
+                        <div class="col s6 m6 l6 xl6" style="position: relative;" id="end-game-winner-label">
+                          <span style="font-size: 1em; position: absolute; top: -20px;" class="orange-text flow-text">THE WINNER:</span>
+                          <div id="end-game-winner" class="flow-text">
+                            WINNER
+                          </div>
+                        </div>
+                        <div class="col s6 m6 l6 xl6" style="position: relative;" id="end-game-loser-label">
+                          <span style="font-size: 1em; position: absolute; top: -20px;" class="orange-text flow-text">THE LOSER:</span>
+                          <div id="end-game-loser" class="flow-text">
+                            LOSER
+                          </div>
+                        </div>
+                        <div class="col s12 m12 l12 xl12 "style="position: relative;" id="end-game-losers-label">
+                          <span style="font-size: 1em; position: absolute; top: -20px;" class="orange-text flow-text">THE LOSERS:</span>
+                          <div id="end-game-losers" class="flow-text">
+                            LOSER(S)
+                          </div>
+                        </div>
+                      </div>
+                      <!-- <div class="row flow-text" id="end-game-losers">
                         <div class="col s12 m12 l12 xl12">
                           LOSER(S)
                         </div>
-                      </div>
+                      </div> -->
 
-                      <div class="row">
+                      <!-- <div class="row">
                         <div class="col s12 m12 l12 xl12">
-                          <div>attempts:</div>
-                          <div>word:</div>
-                          <div>used letters:</div>
-                          <div>correct letters:</div>
-                          <div>incorrect letters:</div>
-                          <div>played letters:</div>
-                          <div>end game state</div>
+                          <div>attempts: <span id="end-attempts"></span></div>
+                          <div>correct letters: <span id="end-correct-letters"></span></div>
+                          <div>incorrect letters: <span id="end-incorrect-letters"></span></div>
+                          <div>played letters: <span id="end-played-letters"></span></div>
+                          <div><span id="end-game-state"></span></div>
                         </div>
-                      </div>
+                      </div> -->
 
 
-                      <div>
+                      <!-- <div>
                         word is <span class="wordIsGuessed"></span> *if [guessed]* [by [player name] in [attempts]]
-                      </div>
+                      </div> -->
                     </div>
                   </div>
                 </div>
@@ -155,8 +171,8 @@
                 </div>
                 <div class="row">
                   <div class="col">
-                    Player one: @joel<br>
-                    Player two: @test
+                    Player one: @<span id="playerOneName"></span><br>
+                    Player two: @<span id="playerTwoName"></span>
                   </div>
                 </div>
               </div>

@@ -53,6 +53,10 @@ $(document).ready(() => {
     });
   });
 
+  socket.on('update ranking', (data) => {
+    $('#profile-ranking').html(`Ranking: ${data.ranking}`);
+  });
+
   socket.on('reset ui', () => {
     init();
   });
@@ -60,6 +64,7 @@ $(document).ready(() => {
   socket.on('win', (data) => {
     updateEndGameElement(data);
     showAlert('WIN', 'Congratulations, you have won!!', 5000);
+
     session.inGame = false;
   });
 
@@ -135,10 +140,10 @@ $(document).ready(() => {
   socket.on('auth success', (data) => {
     $('#login-element').hide();
     $('#lobby-element').show();
-    // console.log(data);
     $('#profile-picture').attr('src', data.session.picture_url);
     $('#profile-username').text(`@${data.session.username}`);
     $('#profile-description').html(`<p>${data.session.description}</p>`);
+    $('#profile-ranking').html(`Ranking: ${data.session.ranking}`);
     session = data.session;
   });
 
@@ -197,6 +202,10 @@ const showAlert = (title, msg, duration = 1000) => {
 }
 
 const init = () => {
+  $('#end-game-winner-label').hide();
+  $('#end-game-losers-label').hide();
+  $('#end-game-loser-label').hide();
+
   $('#lobby-element').hide();
   $('#game-element').hide();
   $('#end-game-element').hide();
@@ -218,6 +227,7 @@ const updateEndGameElement = (data) => {
   $('#game-element').hide();
   $('#lobby-element').show();
   $('#end-game-element').show();
+  console.log(data);
 
   let winner = data.winner;
   let loser = data.loser;
@@ -236,36 +246,60 @@ const updateEndGameElement = (data) => {
   let outputString = data.game.outputString;
   let forfeited = data.game.forfeited;
 
+  $('#end-attempts').text(attempts);
+  $('#end-word').text(word);
+
+  // $('#end-played-letters').text(playedLetters);
+  // $('#end-correct-letters').text(correctLetters);
+  // $('#end-incorrect-letters').text(incorrectLetters);
+  // $('#end-word-is-guessed').text();
+  // $('#end-forfeited').text('');
+
+  if (endState === 'forfeited') {
+    if (session.username === winner.username) {
+      $('#end-game-state').text('Your opponent forfeited');
+    } else {
+      $('#end-game-state').text('You forfeited');
+    }
+
+  }
+
   $winner = $('#end-game-winner');
+  $winner.hide();
   $loser = $('#end-game-loser');
+  $loser.hide();
   $losers = $('#end-game-losers');
+  $losers.hide();
+
+  $('#end-game-winner-label').hide();
+  $('#end-game-losers-label').hide();
+  $('#end-game-loser-label').hide();
 
   if (winner != null) {
-    $winner.html(`<h2>Winner: @${winner.username}</h2>`)
+    $winner.show();
+    $('#end-game-winner-label').show();
+    $winner.html(`@${winner.username}`)
   } else {
     $winner.html('');
     $winner.hide();
   }
 
   if (loser != null) {
-    $loser.html(`<h2>Loser: @${loser.username}</h2>`)
+    $('#end-game-loser-label').show();
+    $loser.show();
+    $loser.html(`@${loser.username}`)
   } else {
     $loser.html('');
     $loser.hide();
   }
 
   if (losers.length > 0) {
-    $losers.html('<div class="row"><div class="col s12"><h3>Losers</h3></div></div>');
-    $losers.append('<div class="row">');
+    $('#end-game-losers-label').show();
+    $losers.html('');
+    $losers.show();
     for (let i = 0; i < losers.length; i++) {
-      let colSize = Math.floor(12 / losers.length);
-      $losers.append(
-        `<div class="col s${colSize} m${colSize} l${colSize} xl${colSize}">
-          <h4>@${losers[i].username}</h4>
-        </div>`
-      );
+      $losers.append(`<div class="col">@${losers[i].username}</div>`);
     }
-    $losers.append('</div>');
   } else {
     $losers.html('');
     $losers.hide();
@@ -316,6 +350,8 @@ const gameStart = (data) => {
 
   playerOne = data.gameState.playerOne;
   playerTwo = data.gameState.playerTwo;
+  $('#playerOneName').text(playerOne.username);
+  $('#playerTwoName').text(playerTwo.username);
 
   if (playerOne.username === session.username) {
     myTurn = true;
