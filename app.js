@@ -86,10 +86,7 @@ io.sockets.on('connection', (socket) => {
     game.addPlayer(challenged);
     game.start();
     games.push(game);
-
-    emitToPlayers(game.getPlayers(), 'game start', {
-      gameState: game.getState()
-    });
+    apiGameStart(game);
   });
 
   socket.on('check letter', (data) => {
@@ -194,6 +191,33 @@ const emitToPlayers = (players, event, data) => {
   for(let i = 0; i < players.length; i++) {
     emitToPlayer(players[i].socketId, event, data);
   }
+};
+
+// flow is als volgt
+// game/new is send
+// it returns a game id
+// which is added to game itself
+// and then used everywhere else
+const apiGameStart = (game) => {
+  const request = axios({
+    method: 'post',
+    url: `http://localhost:5000/api/v1-0/game/new`,
+    data: {
+      'players': game.getPlayers().map((player) => { return player.userId }),
+      'playerOne': game.getPlayerOne().userId,
+      'word': game.word
+    }
+  }).then((res) => {
+    console.log(res.data)
+    game.addGameId(res.data.gameId)
+    emitToPlayers(game.getPlayers(), 'game start', {
+      gameState: game.getState()
+    });
+    // player.ranking = res.data.user.ranking
+  }).catch((err) => {
+    // console.log(err)
+    console.log(`error while starting a game.`)
+  })
 };
 
 const getRandomWord = () => {

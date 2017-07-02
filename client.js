@@ -369,6 +369,7 @@ const updateGameState = (gameState) => {
   let guessAttempts = gameState.guessAttempts;
   let word = gameState.word;
   let outputString = gameState.outputString;
+  console.log(gameState)
   renderButtons(gameState.notUsedLetters);
   console.log(`the word is: ${word}`);
   $('#guesses').text(guessAttempts);

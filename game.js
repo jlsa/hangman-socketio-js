@@ -24,6 +24,7 @@ class Game {
     this.forfeited = false;
     this.forfeitedPlayer = null;
     this.word = '';
+    this.gameId = -1;
   }
 
   addLetter(letter) {
@@ -97,6 +98,14 @@ class Game {
 
   getEndState() {
     return this.endState;
+  }
+
+  addGameId(gameId) {
+    this.gameId = gameId;
+  }
+
+  getGameId() {
+    return this.gameId;
   }
 
   addWord(word) {
@@ -193,7 +202,8 @@ class Game {
       notUsedLetters: this.notUsedLetters,
       outputString: this.outputString,
       uniqueLetters: this.uniqueLetters,
-      guessAttempts: this.guessAttempts
+      guessAttempts: this.guessAttempts,
+      gameId: this.gameId
     };
     return state;
   }
