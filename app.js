@@ -220,6 +220,37 @@ const apiGameStart = (game) => {
   })
 };
 
+const apiGameStop = (game, winner, losers, reason) => {
+
+  let data = null;
+
+  if (reason == 'forfeit' || reason == 'won') {
+    data = {
+      winner: { "id": winner.userId },
+      losers: [ { "id": losers[0].userId } ]
+    }
+  }
+
+  if (reason == 'lost-both') {
+    data = {
+      winner: null,
+      losers: [ { "id": losers[0].userId }, { "id": losers[1].userId } ]
+    }
+  }
+
+  const request = axios({
+    method: 'post',
+    url: `http://localhost:5000/api/v1-0/game/stop/${game.gameId}`,
+    data: data
+  }).then((res) => {
+    console.log(res.data);
+    console.log('game has ended successfully.');
+  }).catch((err) => {
+    console.log(err);
+    console.log('error while ending a game.');
+  })
+}
+
 const getRandomWord = () => {
   let word = global.words[Math.floor(Math.random() * global.words.length)];
   return word;
@@ -256,10 +287,12 @@ const resetClient = () => {
 
 const handleFinishedGame = (game, player, opponent) => {
   updatePlayStatus(player, opponent, false);
-
+  // apiGameStop(game, winner, [loser], game.getEndState());
+  // apiGameStop(game, null, [player, opponent], game.getEndState());
   if (game.getEndState() == 'won') {
     updateRanking(getUserById(player.userId), 'win');
     updateRanking(getUserById(opponent.userId), 'loss');
+    apiGameStop(game, player, [opponent], 'win');
     emitToPlayer(player.socketId, 'win', {
       winner: player,
       loser: opponent,
@@ -274,7 +307,8 @@ const handleFinishedGame = (game, player, opponent) => {
         notUsedLetters: game.notUsedLetters,
         wordIsGuessed: game.wordIsGuessed,
         outputString: game.outputString,
-        forfeited: game.forfeited
+        forfeited: game.forfeited,
+        gameId: game.gameId
       }
     });
     emitToPlayer(opponent.socketId, 'lost', {
@@ -291,7 +325,8 @@ const handleFinishedGame = (game, player, opponent) => {
         notUsedLetters: game.notUsedLetters,
         wordIsGuessed: game.wordIsGuessed,
         outputString: game.outputString,
-        forfeited: game.forfeited
+        forfeited: game.forfeited,
+        gameId: game.gameId
       }
     });
     emitToPlayers(game.getPlayers(), 'logging', {
@@ -302,6 +337,7 @@ const handleFinishedGame = (game, player, opponent) => {
   if (game.getEndState() == 'lost-both') {
     updateRanking(getUserById(player.userId), 'loss');
     updateRanking(getUserById(opponent.userId), 'loss');
+    apiGameStop(game, null, [player, opponent], 'lost-both');
     emitToPlayers(game.getPlayers(), 'lost-both', {
       winner: null,
       loser: null,
@@ -316,7 +352,8 @@ const handleFinishedGame = (game, player, opponent) => {
         notUsedLetters: game.notUsedLetters,
         wordIsGuessed: game.wordIsGuessed,
         outputString: game.outputString,
-        forfeited: game.forfeited
+        forfeited: game.forfeited,
+        gameId: game.gameId
       }
     });
     emitToPlayers(game.getPlayers(), 'logging', {
@@ -327,7 +364,7 @@ const handleFinishedGame = (game, player, opponent) => {
   if (game.getEndState() == 'forfeited') {
     updateRanking(getUserById(player.userId), 'loss');
     updateRanking(getUserById(opponent.userId), 'win');
-
+    apiGameStop(game, opponent, [player], 'forfeit');
     emitToPlayers(game.getPlayers(), 'game stop', {
       reason: 'forfeit',
       winner: opponent,
@@ -343,7 +380,8 @@ const handleFinishedGame = (game, player, opponent) => {
         notUsedLetters: game.notUsedLetters,
         wordIsGuessed: game.wordIsGuessed,
         outputString: game.outputString,
-        forfeited: game.forfeited
+        forfeited: game.forfeited,
+        gameId: game.gameId
       }
     });
     emitToPlayers(game.getPlayers(), 'logging', {
