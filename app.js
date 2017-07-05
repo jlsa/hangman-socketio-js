@@ -44,6 +44,9 @@ io.sockets.on('connection', (socket) => {
 
   socket.on('forfeit', () => {
     let game = getGame(socket.id);
+    if (game == null) {
+      return;
+    }
     let player = game.getPlayer(socket.id);
     let opponent = game.getOpponent(player);
     game.forfeit(player);
@@ -51,8 +54,13 @@ io.sockets.on('connection', (socket) => {
   });
 
   socket.on('i know the word', (data) => {
+
     // todo add validation if player can really do this!
     let game = getGame(socket.id);
+
+    if (game == null) {
+      return;
+    }
     let player = game.getPlayer(socket.id);
     // let user = getUserById(player.userId);
     let opponent = game.getOpponent(player);
